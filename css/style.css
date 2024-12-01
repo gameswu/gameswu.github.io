@@ -43,6 +43,9 @@
   --cursor-default: url("../images/cursor/reimu-cursor-default.png"), auto;
   --cursor-pointer: url("../images/cursor/reimu-cursor-pointer.png"), pointer;
   --cursor-text: url("../images/cursor/reimu-cursor-text.png"), text;
+  --footer-icon: url("../images/taichi.png");
+  --sponsor-icon: url("../images/taichi.png");
+  --top-icon: url("../images/taichi.png");
 }
 [data-theme="dark"]:root {
   --red-0: var(--red-1);
@@ -390,6 +393,9 @@ body [data-aos='zoom-in'] {
   font-family: "iconfont";
   content: "\e62b";
 }
+.icon {
+  font-family: "iconfont";
+}
 html,
 body,
 div,
@@ -514,7 +520,7 @@ body {
   -webkit-font-smoothing: antialiased;
   text-size-adjust: 100%;
   font-family: 'Mulish','Noto Serif SC', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  transition: background 0.3s;
+  transition: background 1s;
 }
 body ::selection {
   background: var(--red-1);
@@ -550,7 +556,7 @@ a {
   left: 0;
   height: 100%;
   width: 100%;
-  transition: 0.3s;
+  transition: 1s;
   background: var(--color-background);
 }
 #main {
@@ -643,7 +649,7 @@ a {
   overflow: hidden;
   background: var(--color-header-background);
   box-shadow: 0 0 15px 5px rgba(0,0,0,0.1);
-  transition: background 0.3s, top 0.3s;
+  transition: background 1s, top 0.3s;
   z-index: 200;
 }
 #header-nav:hover {
@@ -769,6 +775,12 @@ a {
 .main-nav-link-wrap:hover .main-nav-icon:before {
   transform: rotate(90deg) scale(1.1);
 }
+.main-nav-link-wrap:hover .main-nav-icon {
+  transform: scale(1.1);
+}
+.main-nav-link-wrap:hover .main-nav-icon.rotate {
+  transform: rotate(90deg) scale(1.1);
+}
 .main-nav-link {
   letter-spacing: 1px;
   font-weight: 700;
@@ -779,6 +791,13 @@ a {
   padding: 15px 5px;
   display: flex;
   align-items: center;
+  font-size: 24px;
+  font-weight: 400;
+  transition: transform 0.3s;
+  will-change: transform;
+}
+.main-nav-icon.rotate {
+  transform: rotate(90deg);
 }
 .main-nav-icon:before {
   font-size: 24px;
@@ -1402,6 +1421,98 @@ a {
   border-top-right-radius: 10px;
   border-bottom-left-radius: 10px;
 }
+.post-categories-wrapper {
+  display: flex;
+  gap: 40px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+@media screen and (max-width: 767px) {
+  .post-categories-wrapper {
+    flex-direction: column;
+    gap: 40px;
+  }
+}
+.post-categories-wrapper.aos-animate {
+  transition-property: initial !important;
+}
+.post-categories-wrap {
+  width: calc(50% - 20px);
+  flex-grow: 1;
+  height: 230px;
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: 1s;
+}
+@media screen and (max-width: 767px) {
+  .post-categories-wrap {
+    width: 100%;
+    height: 180px;
+  }
+}
+@media screen and (min-width: 768px) {
+  .post-categories-wrap:hover {
+    transform: scale(1.01);
+  }
+  .post-categories-wrap:hover img {
+    opacity: 0.6 !important;
+    transform: scale(1.05);
+  }
+}
+@media screen and (min-width: 768px) and (min-width: 768px) {
+  .post-categories-wrap:hover {
+    box-shadow: 0 0 10px 3px var(--color-hover-shadow);
+  }
+}
+.post-categories-cover {
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+  min-height: 95px;
+  flex-shrink: 0;
+  pointer-events: none;
+  transition: 0.6s;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #000;
+}
+@media screen and (max-width: 767px) {
+  .post-categories-cover {
+    width: 100%;
+  }
+}
+.post-categories-cover img {
+  display: block;
+  opacity: 0;
+  transition: 0.6s;
+  position: absolute;
+  left: 0;
+  top: 0;
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+.post-categories-cover img.lazyloaded {
+  opacity: 0.7;
+  animation: blur 0.8s forwards;
+}
+.post-categories-cover h2,
+.post-categories-cover h3 {
+  z-index: 1;
+  color: #fff;
+  text-shadow: 0 0.2rem 0.3rem rgba(0,0,0,0.5);
+  margin: 0 5px;
+}
+.post-categories-cover h2 {
+  font-size: 35px;
+}
+.post-categories-cover h3 {
+  font-size: 20px;
+  margin-top: 30px;
+}
 #comments {
   background: var(--color-wrap);
   padding: 20px;
@@ -1613,9 +1724,10 @@ a {
   font-weight: 700;
 }
 #footer {
-  background: linear-gradient(to top, var(--color-footer-background) 50%, transparent);
+  background-color: linear-gradient(to top, var(--color-footer-background) 50%, transparent);
   padding: 40px 0 20px;
   color: var(--grey-9);
+  transition: 1s;
 }
 #footer:hover .footer-line {
   opacity: 0.5;
@@ -1658,23 +1770,25 @@ a {
 .footer-info-sep {
   width: 25px;
   opacity: 0.8;
+}
+.footer-info-sep.rotate {
   animation: rotate-all 3s linear infinite;
 }
-@supports (-webkit-mask: url("../images/taichi.png") no-repeat center/80%) {
+@supports (-webkit-mask: var(--footer-icon) no-repeat center/80%) {
   .footer-info-sep {
     background-color: var(--red-1);
-    -webkit-mask: url("../images/taichi.png") no-repeat center/80%;
+    -webkit-mask: var(--footer-icon) no-repeat center/80%;
   }
 }
-@supports (mask: url("../images/taichi.png") no-repeat center/80%) {
+@supports (mask: var(--footer-icon) no-repeat center/80%) {
   .footer-info-sep {
     background-color: var(--red-1);
-    mask: url("../images/taichi.png") no-repeat center/80%;
+    mask: var(--footer-icon) no-repeat center/80%;
   }
 }
-@supports not ((mask: url("../images/taichi.png") no-repeat center/80%) and (-webkit-mask: url("../images/taichi.png") no-repeat center/80%)) {
+@supports not ((mask: var(--footer-icon) no-repeat center/80%) and (-webkit-mask: var(--footer-icon) no-repeat center/80%)) {
   .footer-info-sep {
-    background: url("../images/taichi.png") no-repeat center/80%;
+    background: var(--footer-icon) no-repeat center/80%;
   }
 }
 @media screen and (min-width: 960px) {
@@ -2170,8 +2284,11 @@ pre .javascript .function {
   height: 50px;
   opacity: 0.8;
   transition: 0.3s;
-  animation: rotate-all 3s linear infinite;
+  border-radius: 50%;
   opacity: 1;
+}
+.sidebar-top .sidebar-top-taichi.rotate {
+  animation: rotate-all 3s linear infinite;
 }
 .sidebar-top .arrow-up {
   transition: 0.3s;
@@ -2193,22 +2310,119 @@ pre .javascript .function {
 .sidebar-top:hover .arrow-up {
   opacity: 1;
 }
-@supports (-webkit-mask: url("../images/taichi.png") no-repeat center/100%) {
+@supports (-webkit-mask: var(--top-icon) no-repeat center/100%) {
   .sidebar-top-taichi {
     background-color: var(--red-1);
-    -webkit-mask: url("../images/taichi.png") no-repeat center/100%;
+    -webkit-mask: var(--top-icon) no-repeat center/100%;
   }
 }
-@supports (mask: url("../images/taichi.png") no-repeat center/100%) {
+@supports (mask: var(--top-icon) no-repeat center/100%) {
   .sidebar-top-taichi {
     background-color: var(--red-1);
-    mask: url("../images/taichi.png") no-repeat center/100%;
+    mask: var(--top-icon) no-repeat center/100%;
   }
 }
-@supports not ((mask: url("../images/taichi.png") no-repeat center/100%) and (-webkit-mask: url("../images/taichi.png") no-repeat center/100%)) {
+@supports not ((mask: var(--top-icon) no-repeat center/100%) and (-webkit-mask: var(--top-icon) no-repeat center/100%)) {
   .sidebar-top-taichi {
-    background: url("../images/taichi.png") no-repeat center/100%;
+    background: var(--top-icon) no-repeat center/100%;
   }
+}
+.sponsor-wrapper {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  margin: 5px 0;
+  margin-top: 10px;
+}
+.sponsor-title {
+  font-size: 18px;
+  letter-spacing: 2px;
+  color: var(--color-link);
+  opacity: 0.8;
+  text-decoration: none;
+  transition: opacity 0.2s;
+  display: block;
+  padding: 10px 0;
+  font-weight: 700;
+  user-select: none;
+}
+.sponsor-icon {
+  width: 30px;
+  margin: 0 10px;
+  opacity: 0.8;
+}
+.sponsor-icon.rotate {
+  animation: rotate-all 3s linear infinite;
+}
+@supports (-webkit-mask: var(--sponsor-icon) no-repeat center/80%) {
+  .sponsor-icon {
+    background-color: var(--red-1);
+    -webkit-mask: var(--sponsor-icon) no-repeat center/80%;
+  }
+}
+@supports (mask: var(--sponsor-icon) no-repeat center/80%) {
+  .sponsor-icon {
+    background-color: var(--red-1);
+    mask: var(--sponsor-icon) no-repeat center/80%;
+  }
+}
+@supports not ((mask: var(--sponsor-icon) no-repeat center/80%) and (-webkit-mask: var(--sponsor-icon) no-repeat center/80%)) {
+  .sponsor-icon {
+    background: var(--sponsor-icon) no-repeat center/80%;
+  }
+}
+.sponsor-button-wrapper {
+  margin: 8px 50px;
+  display: flex;
+  position: relative;
+  width: fit-content;
+  justify-content: center;
+  border: 10px var(--color-red-3-shadow) double;
+  transition: border 0.5s;
+  cursor: var(--cursor-pointer);
+}
+.sponsor-button-wrapper:hover {
+  border: 10px var(--color-h2-after) double;
+}
+.sponsor-button-wrapper:hover + .sponsor-tip {
+  opacity: 0.8;
+}
+.sponsor-button-wrapper.active {
+  border: 10px var(--color-h2-after) double;
+}
+.sponsor-tip {
+  transition: opacity 0.2s;
+  color: var(--color-link);
+  opacity: 0;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.sponsor-tip.active {
+  opacity: 0.8;
+}
+.sponsor-qr {
+  gap: 5px;
+  width: 100%;
+  flex-wrap: wrap;
+  justify-content: center;
+  display: none;
+  margin-top: 5px;
+}
+.sponsor-qr.active {
+  display: flex;
+}
+.sponsor-qr-image-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.sponsor-qr-name {
+  font-size: 14px;
+  opacity: 0.9;
+  color: var(--color-default);
+  margin-top: 8px;
 }
 .popup {
   visibility: hidden;
@@ -2555,6 +2769,10 @@ pre .javascript .function {
 }
 .icon-github {
   color: #191717;
+  transition: 1s;
+}
+[data-theme="dark"] .icon-github {
+  color: #bc88ff;
 }
 .icon-bilibili {
   color: #00a1d6;
@@ -2590,7 +2808,17 @@ pre .javascript .function {
 .sidebar-menu-link-wrap:hover .sidebar-menu-icon:before {
   transform: rotate(90deg) scale(1.1);
 }
+.sidebar-menu-link-wrap:hover .sidebar-menu-icon {
+  transform: scale(1.1);
+}
+.sidebar-menu-link-wrap:hover .sidebar-menu-icon.rotate {
+  transform: rotate(90deg) scale(1.1);
+}
 .sidebar-menu-icon {
+  font-size: 24px;
+  font-weight: 400;
+  transition: transform 0.3s;
+  will-change: transform;
   pointer-events: none;
   padding: 5px;
   display: flex;
@@ -2602,6 +2830,9 @@ pre .javascript .function {
   transform: rotate(90deg);
   transition: transform 0.3s;
   will-change: transform;
+}
+.sidebar-menu-icon.rotate {
+  transform: rotate(90deg);
 }
 .sidebar-menu-link-dummy {
   position: absolute;
