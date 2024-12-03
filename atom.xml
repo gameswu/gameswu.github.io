@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2024-12-01T12:41:11.832Z</updated>
+  <updated>2024-12-03T13:11:18.911Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -17,18 +17,45 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>相由新声</title>
+    <link href="http://example.com/2024/12/02/%E7%9B%B8%E7%94%B1%E6%96%B0%E5%A3%B0/"/>
+    <id>http://example.com/2024/12/02/%E7%9B%B8%E7%94%B1%E6%96%B0%E5%A3%B0/</id>
+    <published>2024-12-01T17:02:39.947Z</published>
+    <updated>2024-12-03T13:11:18.911Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css&quot;&gt;&lt;h2 id=&quot;前言&quot;&gt;&lt;a class=&quot;markdownIt-Anchor&quot;</summary>
+        
+      
+    
+    
+    
+    <category term="物理竞赛" scheme="http://example.com/categories/%E7%89%A9%E7%90%86%E7%AB%9E%E8%B5%9B/"/>
+    
+    
+    <category term="统计力学" scheme="http://example.com/tags/%E7%BB%9F%E8%AE%A1%E5%8A%9B%E5%AD%A6/"/>
+    
+    <category term="热力学" scheme="http://example.com/tags/%E7%83%AD%E5%8A%9B%E5%AD%A6/"/>
+    
+  </entry>
+  
+  <entry>
     <title>有Bug的物理竞赛</title>
     <link href="http://example.com/2024/12/01/%E6%9C%89Bug%E7%9A%84%E7%89%A9%E7%90%86%E7%AB%9E%E8%B5%9B/"/>
     <id>http://example.com/2024/12/01/%E6%9C%89Bug%E7%9A%84%E7%89%A9%E7%90%86%E7%AB%9E%E8%B5%9B/</id>
     <published>2024-11-30T16:33:53.756Z</published>
-    <updated>2024-12-01T12:41:11.832Z</updated>
+    <updated>2024-12-02T04:47:48.770Z</updated>
     
     
       
       
         
         
-    <summary type="html">&lt;h2 id=&quot;竞赛规章笑传&quot;&gt;&lt;a class=&quot;markdownIt-Anchor&quot; href=&quot;#竞赛规章笑传&quot;&gt;&lt;/a&gt;</summary>
+    <summary type="html">&lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css&quot;&gt;&lt;h2 id=&quot;竞赛规章笑传&quot;&gt;&lt;a</summary>
         
       
     
@@ -57,9 +84,7 @@
       
         
         
-    <summary type="html">&lt;h2 id=&quot;test&quot;&gt;&lt;a class=&quot;markdownIt-Anchor&quot; href=&quot;#test&quot;&gt;&lt;/a&gt; Test&lt;/h2&gt;
-&lt;p&gt;This is a test blog.&lt;/p&gt;
-&lt;p&gt;&lt;em&gt;This is a test</summary>
+    <summary type="html">&lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css&quot;&gt;&lt;h2 id=&quot;test&quot;&gt;&lt;a</summary>
         
       
     
