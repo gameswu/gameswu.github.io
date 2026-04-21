@@ -1,0 +1,93 @@
+---
+import Search from './Search.astro';
+import ThemeToggle from './ThemeToggle.astro';
+import ThirdEye from './ThirdEye.astro';
+import { siteProfile } from '@/config/site';
+
+const currentPath = Astro.url.pathname;
+const navItems = siteProfile.nav;
+
+const isActive = (href: string) =>
+  currentPath === href || (href !== '/' && currentPath.startsWith(href));
+---
+
+<header
+  class="sticky top-0 z-50 backdrop-blur-lg border-b"
+  style="background: color-mix(in srgb, var(--canvas) 80%, transparent); border-color: var(--border-subtle);"
+>
+  <div class="max-w-5xl mx-auto px-4 sm:px-6">
+    <nav class="flex items-center justify-between h-16">
+      <!-- Logo -->
+      <a href="/" class="flex items-center gap-2.5 group">
+        <ThirdEye size="xs" animate={false} />
+        <span
+          class="text-lg font-serif font-semibold group-hover:text-gradient transition-all duration-300"
+          style="color: var(--text-primary);"
+        >
+          {siteProfile.brand}
+        </span>
+      </a>
+
+      <!-- Desktop Nav -->
+      <div class="hidden sm:flex items-center gap-1">
+        {navItems.map((item) => (
+          <a
+            href={item.href}
+            class:list={['nav-link', { active: isActive(item.href) }]}
+          >
+            {item.label}
+          </a>
+        ))}
+        <div class="ml-2 flex items-center gap-2">
+          <Search />
+          <ThemeToggle />
+        </div>
+      </div>
+
+      <!-- Mobile Menu Button -->
+      <button
+        id="mobile-menu-btn"
+        class="sm:hidden p-2 transition-colors"
+        style="color: var(--text-secondary);"
+        aria-label="菜单"
+        aria-expanded="false"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div
+      id="mobile-menu"
+      class="hidden sm:hidden pb-4 border-t"
+      style="border-color: var(--border-subtle);"
+    >
+      <div class="flex flex-col gap-1 pt-3">
+        {navItems.map((item) => (
+          <a
+            href={item.href}
+            class:list={['nav-link block', { active: isActive(item.href) }]}
+          >
+            {item.label}
+          </a>
+        ))}
+        <div class="mt-3 pt-3 flex items-center gap-2 border-t" style="border-color: var(--border-subtle);">
+          <Search />
+          <ThemeToggle />
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<script>
+  const btn = document.getElementById('mobile-menu-btn');
+  const menu = document.getElementById('mobile-menu');
+  btn?.addEventListener('click', () => {
+    const expanded = btn.getAttribute('aria-expanded') === 'true';
+    btn.setAttribute('aria-expanded', String(!expanded));
+    menu?.classList.toggle('hidden');
+  });
+</script>

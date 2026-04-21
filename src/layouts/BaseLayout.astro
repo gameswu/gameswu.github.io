@@ -1,0 +1,83 @@
+---
+import Header from '@/components/Header.astro';
+import Footer from '@/components/Footer.astro';
+import CursorTrail from '@/components/CursorTrail.astro';
+import { siteMeta } from '@/config/site';
+import '@/styles/global.css';
+import 'katex/dist/katex.min.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  ogImage?: string;
+}
+
+const {
+  title,
+  description = siteMeta.description,
+  ogImage,
+} = Astro.props;
+
+const siteTitle = `${title} | ${siteMeta.title}`;
+---
+
+<!doctype html>
+<html lang="zh-CN" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+
+    <!-- 主题初始化（防 FOUC） -->
+    <script is:inline>
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          if (t === 'light' || t === 'dark') {
+            document.documentElement.setAttribute('data-theme', t);
+          }
+        } catch (e) {}
+      })();
+    </script>
+
+    <!-- Open Graph -->
+    <meta property="og:title" content={siteTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    {ogImage && <meta property="og:image" content={ogImage} />}
+
+    <!-- Favicon（第三只眼 SVG） -->
+    <link rel="icon" type="image/svg+xml" href="/third-eye.svg" />
+
+    <!-- RSS -->
+    <link rel="alternate" type="application/rss+xml" title={siteMeta.title} href="/rss.xml" />
+
+    <!-- Sitemap -->
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <title>{siteTitle}</title>
+  </head>
+  <body id="top" class="min-h-screen flex flex-col bg-pattern-dots">
+    <!-- 装饰性渐变光晕层（主题响应） -->
+    <div class="fixed inset-0 pointer-events-none z-0" aria-hidden="true">
+      <div
+        class="absolute top-0 left-1/4 w-96 h-96 rounded-full blur-3xl opacity-60"
+        style="background: radial-gradient(closest-side, var(--glow-brand), transparent);"
+      ></div>
+      <div
+        class="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full blur-3xl opacity-60"
+        style="background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 30%, transparent), transparent);"
+      ></div>
+    </div>
+
+    <div class="relative z-10 flex flex-col min-h-screen">
+      <Header />
+      <main class="flex-1">
+        <slot />
+      </main>
+      <Footer />
+    </div>
+    <CursorTrail />
+  </body>
+</html>

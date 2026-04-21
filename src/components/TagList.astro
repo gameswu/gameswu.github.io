@@ -1,0 +1,27 @@
+---
+interface Props {
+  tags: string[];
+  activeTag?: string;
+}
+
+const { tags, activeTag } = Astro.props;
+---
+
+<div class="flex flex-wrap gap-2">
+  {tags.map((tag) => (
+    <a
+      href={`/tags/${tag}`}
+      class:list={['tag', { 'tag-active': activeTag === tag }]}
+    >
+      #{tag}
+    </a>
+  ))}
+</div>
+
+<style>
+  :global(.tag-active) {
+    background: var(--accent) !important;
+    color: var(--text-inverse) !important;
+    border-color: var(--accent) !important;
+  }
+</style>

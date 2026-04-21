@@ -1,0 +1,33 @@
+---
+/**
+ * 顶部阅读进度条。
+ */
+---
+
+<div
+  id="reading-progress"
+  class="fixed top-0 left-0 right-0 h-0.5 z-[60] pointer-events-none"
+  aria-hidden="true"
+>
+  <div
+    id="reading-progress-bar"
+    class="h-full origin-left transition-transform duration-100 ease-out"
+    style="transform: scaleX(0); background: linear-gradient(to right, var(--brand), var(--accent), var(--brand-2)); box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 60%, transparent);"
+  ></div>
+</div>
+
+<script>
+  const bar = document.getElementById('reading-progress-bar');
+  if (bar) {
+    const update = () => {
+      const doc = document.documentElement;
+      const scrollTop = window.scrollY || doc.scrollTop;
+      const scrollHeight = doc.scrollHeight - doc.clientHeight;
+      const ratio = scrollHeight > 0 ? Math.min(1, Math.max(0, scrollTop / scrollHeight)) : 0;
+      bar.style.transform = `scaleX(${ratio})`;
+    };
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+  }
+</script>

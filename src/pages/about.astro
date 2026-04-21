@@ -1,0 +1,100 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import ThirdEye from '@/components/ThirdEye.astro';
+import { resolveAvatar } from '@/config/site';
+import { getEntry, render } from 'astro:content';
+
+const entry = await getEntry('about', 'index');
+if (!entry) {
+  throw new Error('[about] 找不到 src/content/about/index.md');
+}
+const { Content } = await render(entry);
+const { name, subtitle, avatar, skills, quote } = entry.data;
+const avatarImg = resolveAvatar(avatar);
+---
+
+<BaseLayout title="关于" description={`关于 ${name} 和这个博客`}>
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 py-12">
+    <!-- 头像区域 -->
+    <div class="flex flex-col items-center mb-12">
+      <div class="relative mb-6">
+        <div
+          class="w-32 h-32 sm:w-36 sm:h-36 rounded-full overflow-hidden"
+          style="border: 2px solid var(--border-strong); box-shadow: 0 10px 30px -10px var(--glow-brand); background: var(--surface);"
+        >
+          <img
+            src={avatarImg}
+            alt={name}
+            class="w-full h-full object-cover object-center"
+            loading="eager"
+          />
+        </div>
+
+        <!-- 光环 -->
+        <div
+          class="absolute inset-0 rounded-full blur-md -z-10 scale-110"
+          style="background: var(--gradient-brand); opacity: 0.35;"
+        ></div>
+
+        <!-- 在线状态 -->
+        <div
+          class="absolute bottom-1 right-1 w-4 h-4 rounded-full"
+          style="background: #22c55e; border: 2px solid var(--canvas); box-shadow: 0 0 8px #22c55e;"
+        ></div>
+      </div>
+
+      <h1 class="text-3xl font-serif font-bold text-gradient mb-2">{name}</h1>
+      {subtitle && (
+        <p class="text-sm" style="color: var(--text-muted);">{subtitle}</p>
+      )}
+    </div>
+
+    <!-- 分隔线 -->
+    <div class="flex items-center justify-center gap-3 mb-10">
+      <div
+        class="w-16 h-px"
+        style="background: linear-gradient(to right, transparent, var(--border-strong));"
+      ></div>
+      <ThirdEye size="xs" animate={false} />
+      <div
+        class="w-16 h-px"
+        style="background: linear-gradient(to left, transparent, var(--border-strong));"
+      ></div>
+    </div>
+
+    <!-- 正文（来自 Markdown） -->
+    <article class="prose-satori card p-6 sm:p-8 mb-8">
+      <Content />
+    </article>
+
+    <!-- 技能树（来自 frontmatter.skills） -->
+    {skills.length > 0 && (
+      <div class="card p-6 sm:p-8 mb-8">
+        <h2 class="text-2xl font-serif font-bold mb-4" style="color: var(--text-primary);">技能树</h2>
+        <div class="grid grid-cols-2 gap-4">
+          {skills.map((skill, i) => (
+            <div class="flex items-center gap-2">
+              <span
+                class="w-2 h-2 rounded-full"
+                style={`background: ${i % 2 === 0 ? 'var(--brand)' : 'var(--accent)'};`}
+              ></span>
+              <span class="text-sm" style="color: var(--text-secondary);">{skill}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
+    <!-- 引言（来自 frontmatter.quote） -->
+    {quote && (
+      <div class="card p-6 sm:p-8">
+        <blockquote
+          class="border-l-4 pl-4 italic text-lg font-serif"
+          style="border-color: var(--accent); color: var(--text-secondary);"
+        >
+          「{quote}」
+        </blockquote>
+      </div>
+    )}
+  </div>
+</BaseLayout>

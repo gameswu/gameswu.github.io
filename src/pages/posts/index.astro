@@ -1,0 +1,74 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PostCard from '@/components/PostCard.astro';
+import TagList from '@/components/TagList.astro';
+import { getCollection } from 'astro:content';
+import { siteAssets } from '@/config/site';
+
+const allPosts = await getCollection('posts', ({ data }) => !data.draft);
+const sortedPosts = allPosts.sort(
+  (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime()
+);
+
+const allTags = [...new Set(sortedPosts.flatMap((post) => post.data.tags))].sort();
+const sceneImg = siteAssets.scenes.chireiden;
+---
+
+<BaseLayout title="全部文章">
+  <!-- 场景图大 Hero -->
+  <section class="relative w-full overflow-hidden" style="height: clamp(280px, 38vh, 420px);">
+    <img
+      src={sceneImg}
+      alt="地灵殿"
+      class="absolute inset-0 w-full h-full object-cover"
+      loading="eager"
+    />
+    <!-- 主题响应渐变遮罩 -->
+    <div
+      class="absolute inset-0"
+      style="background: linear-gradient(to bottom, color-mix(in srgb, var(--canvas) 25%, transparent) 0%, color-mix(in srgb, var(--canvas) 55%, transparent) 55%, var(--canvas) 100%);"
+    ></div>
+
+    <!-- 标题叠加 -->
+    <div class="absolute inset-x-0 bottom-0">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 pb-8 sm:pb-10">
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold mb-2" style="color: var(--text-primary);">
+          全部文章
+        </h1>
+        <p class="text-sm sm:text-base" style="color: var(--text-secondary);">
+          共 {sortedPosts.length} 篇文章
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-10">
+    {allTags.length > 0 && (
+      <div class="mb-8">
+        <div class="flex items-center gap-3 flex-wrap">
+          <span class="text-sm" style="color: var(--text-muted);">标签：</span>
+          <TagList tags={allTags} />
+        </div>
+      </div>
+    )}
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+      {sortedPosts.map((post) => (
+        <PostCard
+          title={post.data.title}
+          description={post.data.description}
+          date={post.data.date}
+          tags={post.data.tags}
+          slug={post.id}
+          cover={post.data.cover}
+        />
+      ))}
+    </div>
+
+    {sortedPosts.length === 0 && (
+      <div class="card p-10 text-center">
+        <p style="color: var(--text-muted);">还没有文章</p>
+      </div>
+    )}
+  </div>
+</BaseLayout>

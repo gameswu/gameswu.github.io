@@ -1,0 +1,53 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Hero from '@/components/Hero.astro';
+import PostCard from '@/components/PostCard.astro';
+import { getCollection } from 'astro:content';
+
+const allPosts = await getCollection('posts', ({ data }) => !data.draft);
+const recentPosts = allPosts
+  .sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime())
+  .slice(0, 4);
+---
+
+<BaseLayout title="首页">
+  <Hero />
+
+  <section class="max-w-5xl mx-auto px-4 sm:px-6 pb-16">
+    <div class="flex items-center justify-between mb-8">
+      <h2 class="text-2xl font-serif font-bold" style="color: var(--text-primary);">
+        最近文章
+      </h2>
+      <a
+        href="/posts"
+        class="text-sm transition-colors inline-flex items-center gap-1 group"
+        style="color: var(--accent);"
+      >
+        查看全部
+        <svg class="w-3.5 h-3.5 transform group-hover:translate-x-0.5 transition-transform duration-200"
+          fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+      {recentPosts.map((post) => (
+        <PostCard
+          title={post.data.title}
+          description={post.data.description}
+          date={post.data.date}
+          tags={post.data.tags}
+          slug={post.id}
+          cover={post.data.cover}
+        />
+      ))}
+    </div>
+
+    {recentPosts.length === 0 && (
+      <div class="card p-10 text-center">
+        <p style="color: var(--text-muted);">还没有文章，快去写一篇吧！</p>
+      </div>
+    )}
+  </section>
+</BaseLayout>

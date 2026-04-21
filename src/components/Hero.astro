@@ -1,0 +1,103 @@
+---
+import ThirdEye from './ThirdEye.astro';
+import { siteAssets, siteProfile } from '@/config/site';
+
+const characterImg = siteAssets.characters.heroMain;
+const { eyebrow, title, tagline, subtitle, ctaPrimary, ctaSecondary, characterAlt } = siteProfile.hero;
+---
+
+<section class="relative overflow-hidden py-16 sm:py-24">
+  <!-- 背景光晕（主题自适应） -->
+  <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
+    <div
+      class="absolute top-10 left-10 w-72 h-72 rounded-full blur-3xl"
+      style="background: color-mix(in srgb, var(--brand) 20%, transparent);"
+    ></div>
+    <div
+      class="absolute bottom-10 right-10 w-80 h-80 rounded-full blur-3xl"
+      style="background: color-mix(in srgb, var(--accent) 15%, transparent);"
+    ></div>
+  </div>
+
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 relative">
+    <div class="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-8 lg:gap-12 items-center">
+      <!-- 文字区 -->
+      <div class="text-center lg:text-left order-2 lg:order-1">
+        <div
+          class="inline-flex items-center gap-2 mb-5 px-3 py-1 rounded-full border"
+          style="background: var(--subtle); border-color: var(--border-subtle);"
+        >
+          <span
+            class="w-1.5 h-1.5 rounded-full animate-pulse"
+            style="background: var(--accent);"
+          ></span>
+          <span class="text-xs" style="color: var(--text-secondary);">{eyebrow}</span>
+        </div>
+
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-serif font-bold leading-tight mb-5">
+          <span class="text-gradient">{title}</span>
+        </h1>
+
+        <p class="text-lg sm:text-xl font-serif leading-relaxed mb-3" style="color: var(--text-secondary);">
+          {tagline}
+        </p>
+        <p
+          class="text-sm sm:text-base leading-relaxed mb-10 max-w-lg mx-auto lg:mx-0"
+          style="color: var(--text-muted);"
+        >
+          {subtitle}
+        </p>
+
+        <div class="flex items-center gap-3 justify-center lg:justify-start flex-wrap">
+          <a href={ctaPrimary.href} class="btn btn-primary rounded-full px-6 py-2.5">
+            <span>{ctaPrimary.label}</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </a>
+          <a href={ctaSecondary.href} class="btn btn-ghost rounded-full px-6 py-2.5">
+            {ctaSecondary.label}
+          </a>
+        </div>
+      </div>
+
+      <!-- 立绘区 -->
+      <div class="relative order-1 lg:order-2 flex justify-center lg:justify-end">
+        <div class="relative">
+          <!-- 背后辉光 -->
+          <div
+            class="absolute inset-0 blur-3xl rounded-full"
+            style="background: radial-gradient(circle, var(--glow-brand) 0%, transparent 70%);"
+            aria-hidden="true"
+          ></div>
+
+          <!-- 第三只眼悬浮装饰 -->
+          <div
+            class="absolute -top-4 -left-8 sm:-left-12 z-20"
+            style="animation: var(--animate-float); animation-delay: -1s;"
+          >
+            <ThirdEye size="sm" animate={true} />
+          </div>
+
+          <!-- 立绘图片 -->
+          <div class="relative z-10" style="animation: var(--animate-float);">
+            <img
+              src={characterImg}
+              alt={characterAlt}
+              class="w-64 sm:w-72 lg:w-80 h-auto"
+              style="filter: drop-shadow(0 10px 30px var(--glow-brand));"
+              loading="eager"
+            />
+          </div>
+
+          <!-- 底部投影 -->
+          <div
+            class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-48 h-8 rounded-full blur-2xl"
+            style="background: var(--glow-brand);"
+            aria-hidden="true"
+          ></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

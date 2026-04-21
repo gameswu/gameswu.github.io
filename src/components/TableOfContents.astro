@@ -1,0 +1,109 @@
+---
+/**
+ * 文章目录（TOC）
+ * 接受 Astro 的 headings 数组，只显示 h2/h3 级别（deep 模式含 h4）。
+ * 桌面端显示于右侧 sticky 栏。
+ */
+export interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  headings: Heading[];
+  deep?: boolean;
+}
+
+const { headings, deep = false } = Astro.props;
+const maxDepth = deep ? 4 : 3;
+const filtered = headings.filter((h) => h.depth >= 2 && h.depth <= maxDepth);
+---
+
+{filtered.length > 0 && (
+  <nav aria-label="文章目录" class="toc-nav text-sm">
+    <div class="flex items-center gap-2 mb-3" style="color: var(--text-secondary);">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M4 6h16M4 10h16M4 14h10M4 18h10" />
+      </svg>
+      <span class="font-serif font-semibold" style="color: var(--text-primary);">目录</span>
+    </div>
+    <ul class="space-y-1.5" style="border-left: 1px solid var(--border-subtle);">
+      {filtered.map((h) => (
+        <li>
+          <a
+            href={`#${h.slug}`}
+            data-toc-link={h.slug}
+            class:list={[
+              'toc-link block py-1 pl-4 -ml-px transition-colors leading-snug',
+              { 'pl-6': h.depth === 3, 'pl-8 text-xs': h.depth === 4 },
+            ]}
+          >
+            {h.text}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+)}
+
+<script>
+  const tocLinks = document.querySelectorAll<HTMLAnchorElement>('[data-toc-link]');
+  if (tocLinks.length > 0) {
+    const idToLink = new Map<string, HTMLAnchorElement>();
+    tocLinks.forEach((a) => idToLink.set(a.dataset.tocLink!, a));
+
+    const targets: HTMLElement[] = [];
+    idToLink.forEach((_, id) => {
+      const el = document.getElementById(id);
+      if (el) targets.push(el);
+    });
+
+    let currentActive: HTMLAnchorElement | null = null;
+    const setActive = (id: string | null) => {
+      if (currentActive) currentActive.classList.remove('toc-active');
+      if (id) {
+        const link = idToLink.get(id);
+        if (link) {
+          link.classList.add('toc-active');
+          currentActive = link;
+        }
+      }
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (visible.length > 0) {
+          setActive(visible[0].target.id);
+        } else {
+          const above = targets.filter((t) => t.getBoundingClientRect().top < 100).pop();
+          if (above) setActive(above.id);
+        }
+      },
+      { rootMargin: '-80px 0px -70% 0px', threshold: 0 }
+    );
+    targets.forEach((t) => observer.observe(t));
+  }
+</script>
+
+<style>
+  .toc-link {
+    display: block;
+    color: var(--text-secondary);
+    border-left: 2px solid transparent;
+    margin-left: -1px;
+  }
+  .toc-link:hover {
+    color: var(--text-primary);
+    border-left-color: color-mix(in srgb, var(--accent) 60%, transparent);
+  }
+  :global(.toc-link.toc-active) {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background: linear-gradient(to right, var(--accent-soft), transparent);
+  }
+</style>

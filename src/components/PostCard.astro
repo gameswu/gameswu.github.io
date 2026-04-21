@@ -1,0 +1,68 @@
+---
+import { resolveCover } from '@/config/site';
+
+interface Props {
+  title: string;
+  description?: string;
+  date: string;
+  tags?: string[];
+  slug: string;
+  cover?: string;
+}
+
+const { title, description, date, tags = [], slug, cover } = Astro.props;
+
+const coverSrc = resolveCover(cover);
+
+const formattedDate = new Date(date).toLocaleDateString('zh-CN', {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+});
+---
+
+<a href={`/posts/${slug}`} class="block group">
+  <article class="card card-hover h-full flex flex-col overflow-hidden">
+    <!-- 封面 -->
+    <div class="relative aspect-[16/9] overflow-hidden" style="background: var(--surface);">
+      <img
+        src={coverSrc}
+        alt={title}
+        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        loading="lazy"
+      />
+      <!-- 底部渐暗，让卡片区域过渡自然 -->
+      <div
+        class="absolute inset-0 pointer-events-none"
+        style="background: linear-gradient(to top, color-mix(in srgb, var(--surface) 80%, transparent), transparent 50%);"
+      ></div>
+    </div>
+
+    <div class="p-5 flex flex-col flex-1">
+      <div class="text-xs mb-2" style="color: var(--text-muted);">
+        <time datetime={date}>{formattedDate}</time>
+      </div>
+
+      <h3
+        class="text-lg font-serif font-semibold mb-2 leading-snug transition-all duration-300 group-hover:text-gradient"
+        style="color: var(--text-primary);"
+      >
+        {title}
+      </h3>
+
+      {description && (
+        <p class="text-sm mb-4 flex-1 line-clamp-2 leading-relaxed" style="color: var(--text-secondary);">
+          {description}
+        </p>
+      )}
+
+      {tags.length > 0 && (
+        <div class="flex flex-wrap gap-1.5 mt-auto pt-3 border-t" style="border-color: var(--border-subtle);">
+          {tags.map((tag) => (
+            <span class="tag">#{tag}</span>
+          ))}
+        </div>
+      )}
+    </div>
+  </article>
+</a>

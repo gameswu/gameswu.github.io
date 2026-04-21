@@ -1,0 +1,76 @@
+---
+/**
+ * 鼠标拖尾 —— 爱心 + 光点随机交替，弹幕感粒子。
+ *
+ * - 仅在支持鼠标（pointer: fine）且未要求减少动效的设备启用
+ * - 节流：每 ~32ms 生成一个粒子
+ * - 粒子用 `pointer-events:none` 绝对定位，动画结束自动移除
+ * - 颜色取 --brand / --accent，双主题自适应
+ */
+---
+
+<script>
+  (() => {
+    // 服务端保护（Astro client script 本就在浏览器执行，但保险）
+    if (typeof window === 'undefined') return;
+
+    const mq = window.matchMedia('(pointer: fine)');
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (!mq.matches || reduce.matches) return;
+
+    const layer = document.createElement('div');
+    layer.className = 'cursor-trail-layer';
+    layer.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(layer);
+
+    const HEART_SVG =
+      '<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">' +
+      '<path d="M12 21s-7.5-4.6-9.7-9.2C.8 8.2 2.4 4.6 5.9 4.1c2-.3 3.9.6 5.1 2.1a5.6 5.6 0 0 1 5.1-2.1c3.5.5 5.1 4.1 3.6 7.7C19.5 16.4 12 21 12 21z"/>' +
+      '</svg>';
+
+    let last = 0;
+    const INTERVAL = 32; // ~30fps 生成频率
+
+    function spawn(x: number, y: number) {
+      const isHeart = Math.random() < 0.45;
+      const el = document.createElement('span');
+      el.className = isHeart ? 'cursor-particle cursor-particle--heart' : 'cursor-particle cursor-particle--dot';
+
+      // 随机微偏移 + 漂移终点
+      const jitterX = (Math.random() - 0.5) * 16;
+      const jitterY = (Math.random() - 0.5) * 16;
+      const driftX = (Math.random() - 0.5) * 60;
+      const driftY = -40 - Math.random() * 60; // 向上飘
+      const rot = (Math.random() - 0.5) * 60;
+      const size = isHeart ? 14 + Math.random() * 8 : 6 + Math.random() * 6;
+      // 两种品牌色随机取
+      const color = Math.random() < 0.5 ? 'var(--brand)' : 'var(--accent)';
+
+      el.style.left = `${x + jitterX}px`;
+      el.style.top = `${y + jitterY}px`;
+      el.style.width = `${size}px`;
+      el.style.height = `${size}px`;
+      el.style.color = color;
+      el.style.setProperty('--drift-x', `${driftX}px`);
+      el.style.setProperty('--drift-y', `${driftY}px`);
+      el.style.setProperty('--rot', `${rot}deg`);
+
+      if (isHeart) el.innerHTML = HEART_SVG;
+
+      layer.appendChild(el);
+      el.addEventListener('animationend', () => el.remove(), { once: true });
+    }
+
+    window.addEventListener(
+      'pointermove',
+      (e) => {
+        if (e.pointerType !== 'mouse') return;
+        const now = performance.now();
+        if (now - last < INTERVAL) return;
+        last = now;
+        spawn(e.clientX, e.clientY);
+      },
+      { passive: true }
+    );
+  })();
+</script>

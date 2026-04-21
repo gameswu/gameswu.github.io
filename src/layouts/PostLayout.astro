@@ -1,0 +1,216 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import TagList from '@/components/TagList.astro';
+import TableOfContents, { type Heading } from '@/components/TableOfContents.astro';
+import ReadingProgress from '@/components/ReadingProgress.astro';
+import CodeBlockEnhancer from '@/components/CodeBlockEnhancer.astro';
+import { resolveCover } from '@/config/site';
+
+interface Props {
+  frontmatter: {
+    title: string;
+    description?: string;
+    date: string;
+    tags?: string[];
+    cover?: string;
+  };
+  headings?: Heading[];
+}
+
+const { frontmatter, headings = [] } = Astro.props;
+const { title, description, date, tags = [], cover } = frontmatter;
+
+const coverSrc = resolveCover(cover);
+
+const formattedDate = new Date(date).toLocaleDateString('zh-CN', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+---
+
+<BaseLayout title={title} description={description} ogImage={coverSrc}>
+  <ReadingProgress />
+
+  <!-- 大封面图 -->
+  <section class="relative w-full overflow-hidden" style="height: clamp(320px, 45vh, 520px);">
+    <img
+      src={coverSrc}
+      alt={title}
+      class="absolute inset-0 w-full h-full object-cover"
+      data-pagefind-meta="image[src]"
+    />
+
+    <!-- 主题响应的渐变遮罩：向 canvas 色渐变 -->
+    <div
+      class="absolute inset-0"
+      style="background: linear-gradient(to bottom, color-mix(in srgb, var(--canvas) 30%, transparent) 0%, color-mix(in srgb, var(--canvas) 60%, transparent) 60%, var(--canvas) 100%);"
+    ></div>
+
+    <!-- 标题叠加 -->
+    <div class="absolute inset-x-0 bottom-0">
+      <div class="max-w-3xl mx-auto px-4 sm:px-6 pb-8 sm:pb-10">
+        <div class="flex items-center gap-2 text-sm mb-3" style="color: var(--text-secondary);">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <time datetime={date} data-pagefind-meta="date">{formattedDate}</time>
+        </div>
+
+        <h1
+          class="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold leading-tight"
+          style="color: var(--text-primary);"
+          data-pagefind-meta="title"
+        >
+          {title}
+        </h1>
+
+        {description && (
+          <p class="mt-3 text-base sm:text-lg leading-relaxed max-w-2xl" style="color: var(--text-secondary);">
+            {description}
+          </p>
+        )}
+
+        {tags.length > 0 && (
+          <div class="mt-5">
+            <TagList tags={tags} />
+          </div>
+        )}
+      </div>
+    </div>
+  </section>
+
+  <!-- 正文 + TOC 双栏 -->
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-12 grid gap-10 lg:grid-cols-[1fr_220px]">
+    <article class="min-w-0" data-pagefind-body>
+      <div class="prose-satori">
+        <slot />
+      </div>
+
+      <footer
+        class="mt-16 pt-8 flex items-center justify-between flex-wrap gap-4"
+        style="border-top: 1px solid var(--border-subtle);"
+      >
+        <a
+          href="/posts"
+          class="inline-flex items-center gap-2 transition-colors group"
+          style="color: var(--accent);"
+        >
+          <svg class="w-4 h-4 transform group-hover:-translate-x-1 transition-transform duration-200"
+            fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          返回文章列表
+        </a>
+
+        <a
+          href="#top"
+          class="inline-flex items-center gap-2 text-sm transition-colors"
+          style="color: var(--text-muted);"
+        >
+          回到顶部
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+          </svg>
+        </a>
+      </footer>
+    </article>
+
+    {headings.length > 0 && (
+      <aside class="hidden lg:block">
+        <div class="sticky top-24">
+          <TableOfContents headings={headings} />
+        </div>
+      </aside>
+    )}
+  </div>
+
+  <CodeBlockEnhancer />
+
+  <!-- Mermaid 图表客户端渲染 -->
+  <script>
+    async function renderMermaid() {
+      // Shiki 产出 <pre data-language="mermaid" class="astro-code ..."><code>
+      //   <span class="line"><span>flowchart TD</span></span>
+      //   <span class="line">...</span>
+      // </code></pre>
+      // 换行来自 <span class="line"> 之间的 "\n"，textContent 可以直接拿到，
+      // 但保险起见按 .line 聚合以避免主题差异。
+      const pres = document.querySelectorAll<HTMLElement>('pre[data-language="mermaid"]');
+      if (pres.length === 0) return;
+
+      // 动态导入 mermaid（Vite 会代码分割，仅访问本页时加载）
+      const { default: mermaid } = await import('mermaid');
+
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const FONT = "'Noto Sans SC', system-ui, -apple-system, sans-serif";
+      // mermaid v10+ 序列图 / 类图字体走独立 themeVariable，不继承顶层 fontFamily；
+      // 不覆盖会落到自带的 "trebuchet ms" 上，导致和流程图不一致。
+      const fontVars = {
+        fontFamily: FONT,
+        sequenceMessageFontFamily: FONT,
+        actorFontFamily: FONT,
+        noteFontFamily: FONT,
+        messageFontFamily: FONT,
+        classFontFamily: FONT,
+        stateFontFamily: FONT,
+      };
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: isDark ? 'dark' : 'default',
+        themeVariables: isDark
+          ? {
+              ...fontVars,
+              primaryColor: '#3b0764',
+              primaryTextColor: '#f3e8ff',
+              primaryBorderColor: '#a855f7',
+              lineColor: '#c084fc',
+              secondaryColor: '#6b21a8',
+              tertiaryColor: '#1e1726',
+            }
+          : {
+              ...fontVars,
+              // 与 [data-theme='light'] token 对齐：
+              // brand=violet-700 / text=violet-950 / accent=pink-800
+              background: '#faf7fb',
+              primaryColor: '#ede4f7',           /* 节点填充：薰衣草 */
+              primaryTextColor: '#2e1065',       /* 节点文字：violet-950 */
+              primaryBorderColor: '#6d28d9',     /* 节点边：violet-700 */
+              lineColor: '#5b21b6',              /* 连线：violet-800 */
+              secondaryColor: '#dcd0ec',
+              tertiaryColor: '#f5f0fb',
+              noteBkgColor: '#fce7f3',           /* pink-100 给 note */
+              noteTextColor: '#831843',          /* pink-900 */
+              noteBorderColor: '#9d174d',        /* pink-800 */
+            },
+        fontFamily: FONT,
+      });
+
+      for (let i = 0; i < pres.length; i++) {
+        const pre = pres[i];
+        const lines = pre.querySelectorAll('.line');
+        const src = (
+          lines.length > 0
+            ? Array.from(lines).map((l) => l.textContent ?? '').join('\n')
+            : pre.textContent ?? ''
+        ).trim();
+        if (!src) continue;
+        try {
+          const { svg } = await mermaid.render(`mermaid-${Date.now()}-${i}`, src);
+          const wrapper = document.createElement('div');
+          wrapper.className = 'mermaid-rendered';
+          wrapper.innerHTML = svg;
+          pre.replaceWith(wrapper);
+        } catch (err) {
+          console.error('[mermaid] render failed:', err);
+          pre.setAttribute('data-mermaid-error', '1');
+        }
+      }
+    }
+
+    renderMermaid();
+
+    // 主题切换时重新渲染（简化：不做，保留初次渲染主题即可）
+  </script>
+</BaseLayout>

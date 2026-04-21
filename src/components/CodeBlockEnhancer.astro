@@ -1,0 +1,129 @@
+---
+/**
+ * 代码块增强：为 Shiki 生成的 <pre> 添加语言标签与复制按钮。
+ * 仅在文章页 (PostLayout) 加载。
+ */
+---
+
+<script>
+  const pres = document.querySelectorAll<HTMLPreElement>('pre:not([data-enhanced])');
+  pres.forEach((pre) => {
+    const code = pre.querySelector('code');
+    if (!code) return;
+
+    pre.setAttribute('data-enhanced', 'true');
+    pre.classList.add('code-block-wrapper');
+
+    let lang =
+      pre.getAttribute('data-language') ||
+      [...code.classList].find((c) => c.startsWith('language-'))?.replace('language-', '') ||
+      '';
+    if (lang === 'text' || lang === 'plaintext') lang = '';
+
+    const bar = document.createElement('div');
+    bar.className = 'code-block-bar';
+
+    const langEl = document.createElement('span');
+    langEl.className = 'code-block-lang';
+    langEl.textContent = lang;
+    bar.appendChild(langEl);
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'code-block-copy';
+    btn.setAttribute('aria-label', '复制代码');
+    btn.innerHTML = `
+      <svg class="icon-copy" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+      </svg>
+      <svg class="icon-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+      <span class="copy-label">复制</span>
+    `;
+    btn.addEventListener('click', async () => {
+      const text = code.innerText;
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); } catch {}
+        document.body.removeChild(ta);
+      }
+      btn.classList.add('copied');
+      const label = btn.querySelector('.copy-label')!;
+      const original = label.textContent;
+      label.textContent = '已复制';
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        label.textContent = original;
+      }, 1600);
+    });
+    bar.appendChild(btn);
+
+    pre.prepend(bar);
+  });
+</script>
+
+<style is:global>
+  .code-block-wrapper {
+    position: relative;
+    padding-top: 2.5rem !important;
+  }
+  .code-block-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 0.75rem;
+    background: color-mix(in srgb, var(--elevated) 80%, transparent);
+    border-bottom: 1px solid var(--border-subtle);
+    border-top-left-radius: 0.75rem;
+    border-top-right-radius: 0.75rem;
+    font-size: 0.75rem;
+  }
+  .code-block-lang {
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    text-transform: lowercase;
+    letter-spacing: 0.03em;
+    min-height: 1em;
+  }
+  .code-block-lang:empty::before {
+    content: '';
+  }
+  .code-block-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 0.375rem;
+    color: var(--text-secondary);
+    background: var(--subtle);
+    border: 1px solid var(--border-subtle);
+    font-size: 0.7rem;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    transition: all 150ms var(--ease-standard);
+  }
+  .code-block-copy:hover {
+    color: var(--accent);
+    border-color: var(--border-strong);
+    background: var(--accent-soft);
+  }
+  .code-block-copy.copied {
+    color: var(--accent);
+    border-color: var(--border-strong);
+  }
+  .code-block-copy .icon-check { display: none; }
+  .code-block-copy.copied .icon-copy { display: none; }
+  .code-block-copy.copied .icon-check { display: inline; }
+</style>

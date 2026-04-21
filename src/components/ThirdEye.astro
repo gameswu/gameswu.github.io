@@ -1,0 +1,63 @@
+---
+/**
+ * 第三只眼 —— 古明地觉品牌图形
+ *
+ * 图形源文件：public/third-eye.svg（同时用作 favicon）
+ * 本组件读取源 SVG 内联渲染，按需：
+ *   - 注入唯一 ID 前缀（避免多实例 defs 冲突）
+ *   - 为虹膜圆追加呼吸动画
+ *   - 外加脉冲光晕层
+ */
+import rawSvg from '../../public/third-eye.svg?raw';
+
+interface Props {
+  size?: 'xs' | 'sm' | 'md' | 'lg';
+  animate?: boolean;
+  class?: string;
+}
+
+const { size = 'md', animate = true, class: className = '' } = Astro.props;
+
+const sizeMap: Record<NonNullable<Props['size']>, string> = {
+  xs: 'w-8 h-8',
+  sm: 'w-12 h-12',
+  md: 'w-20 h-20',
+  lg: 'w-32 h-32',
+};
+
+const uid = Math.random().toString(36).slice(2, 9);
+
+// 1. ID 唯一化：把源 SVG 里的 te-iris / te-rim / te-pupil 统一加上实例前缀
+let svg = rawSvg
+  .replace(/id="te-/g, `id="te-${uid}-`)
+  .replace(/url\(#te-/g, `url(#te-${uid}-`);
+
+// 2. 去掉 XML 声明（内联不需要）
+svg = svg.replace(/<\?xml[^?]*\?>\s*/, '');
+
+// 3. 加 class 让 SVG 填满容器
+svg = svg.replace('<svg ', '<svg class="w-full h-full" ');
+
+// 4. 如果需要动画：给两处虹膜 circle（r="34" 和 r="9"）追加 <animate>
+if (animate) {
+  svg = svg.replace(
+    /<circle cx="50" cy="50" r="34" fill="url\(#te-[^)]+\)"\/>/,
+    (m) => m.replace('/>', '><animate attributeName="r" values="34;33;34" dur="4s" repeatCount="indefinite"/></circle>')
+  );
+  svg = svg.replace(
+    /<circle cx="50" cy="50" r="9" fill="url\(#te-[^)]+\)"\/>/,
+    (m) => m.replace('/>', '><animate attributeName="r" values="9;8.3;9" dur="4s" repeatCount="indefinite"/></circle>')
+  );
+}
+---
+
+<div class:list={['relative inline-flex items-center justify-center', sizeMap[size], className]}>
+  <Fragment set:html={svg} />
+
+  {animate && (
+    <div
+      class="absolute inset-0 rounded-full pointer-events-none"
+      style="background: radial-gradient(circle, rgba(220,38,38,0.22) 0%, transparent 65%); animation: var(--animate-pulse-soft);"
+    />
+  )}
+</div>

@@ -1,0 +1,578 @@
+/* ========================================================================
+   Satori Blog — 设计系统
+   ------------------------------------------------------------------------
+   所有 UI 样式基于语义化 token，禁止组件直接使用品牌色阶（如 purple-500）。
+   两套主题（light/dark）各自完整赋值，切换时真实响应。
+   Tailwind v4 `@theme` 注册 token 为实用类（bg-canvas / text-primary 等）。
+   ======================================================================== */
+
+/* Google Fonts — 中文衬线 + 无衬线 */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+
+@import 'tailwindcss';
+
+/* ---- 主题切换策略：data-theme="light" / "dark" ---- */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* ========================================================================
+   设计 Token（语义色）
+   ------------------------------------------------------------------------
+   运行时由 [data-theme] 属性切换。@theme inline 把 CSS 变量暴露为 Tailwind
+   utility classes，例如 `bg-canvas` → `background-color: var(--color-canvas)`
+   ======================================================================== */
+@theme inline {
+  /* Surfaces —— 页面背景层次 */
+  --color-canvas: var(--canvas);              /* 最底层（页面背景） */
+  --color-surface: var(--surface);            /* 卡片 / section 背景 */
+  --color-elevated: var(--elevated);          /* 浮层（header / modal） */
+  --color-subtle: var(--subtle);              /* 细微分层色（tag / code inline bg） */
+
+  /* Text */
+  --color-primary: var(--text-primary);       /* 主文本 */
+  --color-secondary: var(--text-secondary);   /* 次级文本 */
+  --color-muted: var(--text-muted);           /* 弱化 / meta 文本 */
+  --color-inverse: var(--text-inverse);       /* 反相文本（在 accent 上） */
+
+  /* Borders */
+  --color-subtle-border: var(--border-subtle);
+  --color-strong-border: var(--border-strong);
+
+  /* Accents —— 主强调色 / 次强调色 */
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);    /* 低饱和填充背景 */
+  --color-brand: var(--brand);                /* 品牌紫（第三只眼 / 渐变锚点） */
+  --color-brand-2: var(--brand-2);            /* 品牌玫红 */
+
+  /* Fonts */
+  --font-sans: 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Noto Serif SC', 'Source Han Serif SC', Georgia, serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'JetBrains Mono', Consolas, monospace;
+
+  /* Motion */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-slow: 400ms;
+
+  /* Keyframes */
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-pulse-soft: pulseSoft 4s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes pulseSoft {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* ========================================================================
+   主题 —— Dark（默认）
+   ======================================================================== */
+:root,
+[data-theme='dark'] {
+  --canvas: #17111f;
+  --surface: #1e1726;
+  --elevated: #251c2e;
+  --subtle: rgba(139, 92, 246, 0.12);
+
+  --text-primary: #f3e8ff;
+  --text-secondary: rgba(233, 213, 255, 0.78);
+  --text-muted: rgba(216, 180, 254, 0.58);
+  --text-inverse: #ffffff;
+
+  --border-subtle: rgba(168, 85, 247, 0.18);
+  --border-strong: rgba(168, 85, 247, 0.4);
+
+  --accent: #f43f5e;           /* rose-500 */
+  --accent-hover: #fb7185;     /* rose-400 */
+  --accent-soft: rgba(244, 63, 94, 0.16);
+
+  --brand: #a855f7;            /* purple-500 */
+  --brand-2: #ec4899;          /* pink-500 */
+
+  /* 玻璃卡片 / 辉光参数（用于组件内） */
+  --glass-bg: rgba(37, 28, 46, 0.55);
+  --glow-brand: rgba(126, 34, 206, 0.22);
+
+  /* 图案 */
+  --pattern-dot: rgba(139, 92, 246, 0.1);
+
+  /* 品牌装饰渐变 */
+  --gradient-brand: linear-gradient(135deg, #3b0764 0%, #6b21a8 40%, #9f1239 100%);
+
+  color-scheme: dark;
+}
+
+/* ========================================================================
+   主题 —— Light（薰衣草米白 + 深靛紫 + 深玫红）
+   ------------------------------------------------------------------------
+   设计意图：
+   - canvas/surface 走低饱和薰衣草，避免粉调发腻
+   - 文字 violet-950 深邃但不纯黑，保持古典感
+   - accent 用 pink-800 深玫红，在浅底上 AA 对比足够
+   - 装饰渐变走深紫→深玫红，避免"糖果色"糊成一片
+   ======================================================================== */
+[data-theme='light'] {
+  --canvas: #faf7fb;
+  --surface: #f0e9f7;
+  --elevated: #ffffff;
+  --subtle: rgba(91, 33, 182, 0.07);
+
+  --text-primary: #2e1065;     /* violet-950 */
+  --text-secondary: #5b21b6;   /* violet-800 */
+  --text-muted: #7e6a9e;       /* 紫灰 */
+  --text-inverse: #ffffff;
+
+  --border-subtle: rgba(91, 33, 182, 0.15);
+  --border-strong: rgba(91, 33, 182, 0.35);
+
+  --accent: #9d174d;           /* pink-800 深玫红 */
+  --accent-hover: #831843;     /* pink-900 */
+  --accent-soft: rgba(157, 23, 77, 0.1);
+
+  --brand: #6d28d9;            /* violet-700 */
+  --brand-2: #be185d;          /* pink-700 */
+
+  --glass-bg: rgba(255, 255, 255, 0.82);
+  --glow-brand: rgba(109, 40, 217, 0.14);
+
+  --pattern-dot: rgba(109, 40, 217, 0.1);
+
+  --gradient-brand: linear-gradient(135deg, #6d28d9 0%, #9d174d 55%, #be185d 100%);
+
+  color-scheme: light;
+}
+
+/* ========================================================================
+   Tailwind 源扫描（v4 自动扫描 + 指定额外路径，留作兜底）
+   ======================================================================== */
+@source "../../src/**/*.{astro,html,js,jsx,md,mdx,ts,tsx}";
+
+/* ========================================================================
+   Base
+   ======================================================================== */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    background-color: var(--canvas);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    transition:
+      background-color var(--duration-base) var(--ease-standard),
+      color var(--duration-base) var(--ease-standard);
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  /* 滚动条 */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: var(--surface); }
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--accent) 55%, transparent);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+  ::selection {
+    background: color-mix(in srgb, var(--accent) 60%, transparent);
+    color: var(--text-inverse);
+  }
+
+  /* 锚点链接（autolink-headings 产物） */
+  .heading-anchor {
+    margin-left: 0.5rem;
+    opacity: 0;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: opacity var(--duration-base), color var(--duration-base);
+    font-weight: 400;
+  }
+  h2:hover .heading-anchor,
+  h3:hover .heading-anchor,
+  h4:hover .heading-anchor { opacity: 1; }
+  .heading-anchor:hover { color: var(--accent); }
+}
+
+/* ========================================================================
+   Components
+   ======================================================================== */
+@layer components {
+  /* 玻璃卡片 */
+  .card {
+    background: var(--glass-bg);
+    border: 1px solid var(--border-subtle);
+    border-radius: 0.875rem;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 30px -10px var(--glow-brand);
+    transition:
+      border-color var(--duration-base) var(--ease-standard),
+      box-shadow var(--duration-base) var(--ease-standard),
+      transform var(--duration-base) var(--ease-standard);
+  }
+  .card-hover:hover {
+    border-color: var(--border-strong);
+    box-shadow: 0 18px 44px -12px var(--glow-brand);
+  }
+
+  /* 导航链接 */
+  .nav-link {
+    position: relative;
+    color: var(--text-secondary);
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: color var(--duration-base) var(--ease-standard);
+  }
+  .nav-link:hover,
+  .nav-link.active { color: var(--text-primary); }
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -2px;
+    width: 0;
+    height: 2px;
+    background: var(--accent);
+    transform: translateX(-50%);
+    transition: width var(--duration-base) var(--ease-standard);
+  }
+  .nav-link:hover::after,
+  .nav-link.active::after { width: 100%; }
+
+  /* 标签胶囊 */
+  .tag {
+    display: inline-block;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 9999px;
+    background: var(--subtle);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+    transition: all var(--duration-base) var(--ease-standard);
+    cursor: pointer;
+  }
+  .tag:hover {
+    border-color: var(--border-strong);
+    color: var(--text-primary);
+    background: var(--accent-soft);
+  }
+
+  /* 按钮 */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    border-radius: 0.625rem;
+    transition: all var(--duration-base) var(--ease-standard);
+    border: 1px solid transparent;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: var(--text-inverse);
+  }
+  .btn-primary:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+  }
+  .btn-ghost {
+    background: transparent;
+    border-color: var(--border-subtle);
+    color: var(--text-primary);
+  }
+  .btn-ghost:hover {
+    border-color: var(--border-strong);
+    background: var(--subtle);
+  }
+
+  /* 文章正文排版 */
+  .prose-satori { color: var(--text-primary); line-height: 1.8; }
+  .prose-satori h1 { font-size: 1.875rem; font-weight: 700; margin: 2.5rem 0 1rem; }
+  .prose-satori h2 {
+    font-size: 1.5rem; font-weight: 700; margin: 2rem 0 0.75rem;
+    padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-subtle);
+  }
+  .prose-satori h3 { font-size: 1.25rem; font-weight: 600; margin: 1.5rem 0 0.5rem; }
+  .prose-satori p { margin-bottom: 1rem; line-height: 1.75; color: var(--text-secondary); }
+  .prose-satori ul,
+  .prose-satori ol { margin-bottom: 1rem; padding-left: 1.5rem; color: var(--text-secondary); }
+  .prose-satori ul { list-style: disc; }
+  .prose-satori ol { list-style: decimal; }
+  .prose-satori li { margin-bottom: 0.375rem; }
+  .prose-satori a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--accent) 40%, transparent);
+    text-underline-offset: 2px;
+    transition: color var(--duration-fast), text-decoration-color var(--duration-fast);
+  }
+  .prose-satori a:hover {
+    color: var(--accent-hover);
+    text-decoration-color: var(--accent);
+  }
+  .prose-satori blockquote {
+    border-left: 4px solid var(--accent);
+    background: var(--accent-soft);
+    padding: 0.5rem 1rem;
+    margin: 1rem 0;
+    border-radius: 0 0.5rem 0.5rem 0;
+    font-style: italic;
+    color: var(--text-secondary);
+  }
+  .prose-satori code:not(pre code) {
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+    background: var(--subtle);
+    color: var(--accent);
+    border: 1px solid var(--border-subtle);
+  }
+  /* Shiki 双主题
+     Shiki 的 inline style 默认使用 light 色（color / background-color），
+     dark 色放在 --shiki-dark / --shiki-dark-bg CSS 变量里。
+     所以 light 主题无需覆盖（保持 inline style 原样），
+     dark 主题下用 CSS 变量值接管。 */
+  .prose-satori pre {
+    margin: 1.5rem 0;
+    padding: 1rem 1.25rem;
+    border-radius: 0.75rem;
+    overflow-x: auto;
+    border: 1px solid var(--border-subtle);
+    font-size: 0.875rem;
+  }
+  .prose-satori pre code { font-family: var(--font-mono); }
+  [data-theme='dark'] .astro-code,
+  [data-theme='dark'] .astro-code span {
+    color: var(--shiki-dark) !important;
+    background-color: var(--shiki-dark-bg) !important;
+    font-style: var(--shiki-dark-font-style) !important;
+    font-weight: var(--shiki-dark-font-weight) !important;
+    text-decoration: var(--shiki-dark-text-decoration) !important;
+  }
+  .prose-satori img {
+    border-radius: 0.5rem;
+    margin: 1.5rem 0;
+    box-shadow: 0 10px 30px -10px var(--glow-brand);
+    max-width: 100%;
+    height: auto;
+  }
+  /* not-prose 子树内图片重置 prose 规则（如头像等装饰性图） */
+  .prose-satori .not-prose img,
+  .prose-satori .not-prose img * {
+    border-radius: 0;
+    margin: 0;
+    box-shadow: none;
+    max-width: none;
+    height: revert;
+  }
+  .prose-satori hr { margin: 2rem 0; border-color: var(--border-subtle); }
+
+  /* ======================================================================
+     剧透 / 隐藏文字块
+     用法：<span class="spoiler">被遮住的内容</span>
+     默认整块涂黑（文字与背景同色），hover/focus 显形；键盘用 Tab 可聚焦。
+     ====================================================================== */
+  .spoiler {
+    background-color: var(--text-primary);
+    color: var(--text-primary);
+    padding: 0 0.25em;
+    border-radius: 0.25rem;
+    cursor: help;
+    transition:
+      color var(--duration-base) var(--ease-standard),
+      background-color var(--duration-base) var(--ease-standard);
+    /* 让可通过 Tab 聚焦，无障碍 */
+  }
+  .spoiler:hover,
+  .spoiler:focus,
+  .spoiler:focus-within,
+  .spoiler.revealed {
+    color: var(--canvas);
+    background-color: var(--accent);
+  }
+
+  /* ======================================================================
+     GFM 脚注 —— 期刊引用风
+     remark-gfm 产出结构：
+       正文：<sup><a id="user-content-fnref-1" href="#user-content-fn-1" class="data-footnote-ref">1</a></sup>
+       文末：<section data-footnotes class="footnotes"><h2>Footnotes</h2><ol>...
+     ====================================================================== */
+  .prose-satori .footnotes {
+    margin-top: 3rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border-subtle);
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+  }
+  .prose-satori .footnotes h2,
+  .prose-satori .footnotes .sr-only {
+    /* remark-gfm 生成的 "Footnotes" 标题：改成简洁小标题 */
+    position: static;
+    clip: auto;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 0.75rem;
+    padding: 0;
+    border: none;
+    letter-spacing: 0.04em;
+  }
+  .prose-satori .footnotes h2::before,
+  .prose-satori .footnotes .sr-only::before {
+    content: '参考 · ';
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .prose-satori .footnotes ol {
+    padding-left: 1.5rem;
+    margin: 0;
+  }
+  .prose-satori .footnotes li {
+    margin-bottom: 0.375rem;
+    padding-left: 0.25rem;
+  }
+  .prose-satori .footnotes li::marker {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .prose-satori a[data-footnote-ref],
+  .prose-satori .data-footnote-ref {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+    padding: 0 0.125rem;
+  }
+  .prose-satori a[data-footnote-ref]:hover {
+    text-decoration: underline;
+  }
+  .prose-satori a[data-footnote-backref],
+  .prose-satori .data-footnote-backref {
+    margin-left: 0.25rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color var(--duration-fast);
+  }
+  .prose-satori a[data-footnote-backref]:hover {
+    color: var(--accent);
+  }
+
+  /* ======================================================================
+     鼠标拖尾粒子（爱心 + 光点）
+     由 CursorTrail.astro 注入 .cursor-trail-layer 到 body 末尾
+     ====================================================================== */
+  .cursor-trail-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    overflow: hidden;
+  }
+  .cursor-particle {
+    position: absolute;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    will-change: transform, opacity;
+    animation: cursorParticle 900ms var(--ease-standard) forwards;
+  }
+  .cursor-particle--dot {
+    border-radius: 9999px;
+    background: radial-gradient(
+      circle,
+      currentColor 0%,
+      color-mix(in srgb, currentColor 60%, transparent) 45%,
+      transparent 75%
+    );
+    filter: drop-shadow(0 0 6px currentColor);
+  }
+  .cursor-particle--heart {
+    filter: drop-shadow(0 0 4px color-mix(in srgb, currentColor 70%, transparent));
+  }
+  .cursor-particle--heart svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  @keyframes cursorParticle {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.4) rotate(0deg);
+    }
+    20% {
+      opacity: 0.9;
+      transform: translate(calc(-50% + var(--drift-x, 0) * 0.25), calc(-50% + var(--drift-y, 0) * 0.25)) scale(1) rotate(calc(var(--rot, 0deg) * 0.3));
+    }
+    100% {
+      opacity: 0;
+      transform: translate(calc(-50% + var(--drift-x, 0)), calc(-50% + var(--drift-y, 0))) scale(0.6) rotate(var(--rot, 0deg));
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cursor-trail-layer { display: none; }
+  }
+
+  /* Mermaid 渲染容器 */
+  .mermaid-rendered {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 0.75rem;
+    overflow-x: auto;
+    text-align: center;
+  }
+  .mermaid-rendered svg {
+    max-width: 100%;
+    height: auto;
+    display: inline-block;
+  }
+  .prose-satori table { width: 100%; margin: 1.5rem 0; border-collapse: collapse; }
+  .prose-satori th {
+    padding: 0.5rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    background: var(--subtle);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+  }
+  .prose-satori td {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+  }
+}
+
+/* ========================================================================
+   Utilities
+   ======================================================================== */
+@layer utilities {
+  .text-gradient {
+    background: var(--gradient-brand);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .bg-pattern-dots {
+    background-image: radial-gradient(var(--pattern-dot) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  .bg-gradient-brand { background-image: var(--gradient-brand); }
+}
