@@ -3,7 +3,7 @@ title: Markdown 渲染测试
 description: 涵盖标题、列表、代码、表格、引用、任务列表、数学、Mermaid 图等常见 Markdown 用法
 date: '2026-04-21'
 tags: [测试, Markdown, 技术]
-cover: test
+cover: ./cover.png
 ---
 
 本文用于测试本博客对 Markdown 各种语法的渲染效果。如有显示异常，请据此页定位样式问题。
@@ -193,9 +193,10 @@ $$
 
 ## 9. 图片
 
-文章封面由 frontmatter `cover` 字段决定，正文中也可插入图片：
+文章封面由 frontmatter `cover` 字段决定；正文图片推荐使用**相对当前文章目录**的路径，
+Astro 会自动把它交给 Vite 图片管线，产出带哈希的 `_astro/xxx.png`，有长期缓存。
 
-![一张占位封面](/images/covers/test.png)
+![同目录 demo 图（相对路径，走 Astro 图片管线）](./demo.png)
 
 ## 10. HTML 原生元素
 

@@ -1,0 +1,62 @@
+---
+/**
+ * 文章底部的上/下一篇跳转。
+ *
+ * - prev / next 任一为 null 时，对应方向的格子留空（占位保持两列对齐）
+ * - 两者都为 null 时，组件返回 null（上层判断不渲染整个容器）
+ */
+interface NavItem {
+  slug: string;
+  title: string;
+}
+interface Props {
+  prev: NavItem | null;
+  next: NavItem | null;
+}
+const { prev, next } = Astro.props;
+---
+
+{(prev || next) && (
+  <nav
+    class="mt-10 grid gap-4 sm:grid-cols-2"
+    aria-label="上一篇 / 下一篇"
+  >
+    {prev ? (
+      <a
+        href={`/posts/${prev.slug}`}
+        class="post-nav-card group"
+        data-direction="prev"
+      >
+        <span class="post-nav-label">
+          <svg class="w-4 h-4 transition-transform group-hover:-translate-x-1"
+            fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          上一篇
+        </span>
+        <span class="post-nav-title">{prev.title}</span>
+      </a>
+    ) : (
+      <span class="post-nav-placeholder" aria-hidden="true"></span>
+    )}
+
+    {next ? (
+      <a
+        href={`/posts/${next.slug}`}
+        class="post-nav-card group post-nav-card--right"
+        data-direction="next"
+      >
+        <span class="post-nav-label">
+          下一篇
+          <svg class="w-4 h-4 transition-transform group-hover:translate-x-1"
+            fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </span>
+        <span class="post-nav-title">{next.title}</span>
+      </a>
+    ) : (
+      <span class="post-nav-placeholder" aria-hidden="true"></span>
+    )}
+  </nav>
+)}

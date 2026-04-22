@@ -14,6 +14,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import type { ImageMetadata } from 'astro';
 
 const PUBLIC_IMAGES_DIR = path.resolve('./public/images');
 /** 按优先级排序的图片扩展名（较优格式在前） */
@@ -78,25 +79,25 @@ export const siteAssets = {
 
 /**
  * 根据文章 frontmatter 推断封面。
- * 优先级：显式 cover > 默认封面
- * cover 字段可以是：
- *   - 完整路径（以 / 或 http 开头）→ 原样返回
- *   - 基础名（如 "test"）→ 在 public/images/covers/ 下按支持的扩展名解析
- * 显式基础名找不到即 throw（用户意图明确，不容忍静默 fallback）。
+ *
+ * 文章 frontmatter 的 `cover` 字段在 content.config.ts 里用 `image()` helper
+ * 声明，所以此处接收到的是 Astro 图片管线处理后的 ImageMetadata（或 undefined）。
+ *
+ * - 有值 → 原样返回 ImageMetadata（调用方通过 `.src` 取 URL，或传给 `<Image />`）
+ * - 无值 → 回退到 public/images/covers/default.* 字符串 URL（加载期已查盘）
+ *
+ * 返回类型是联合类型，调用方判别：`typeof v === 'string' ? v : v.src`
  */
-export function resolveCover(explicitCover: string | undefined): string {
-  if (explicitCover) {
-    if (explicitCover.startsWith('/') || explicitCover.startsWith('http')) {
-      return explicitCover;
-    }
-    const resolved = findImage('covers', explicitCover);
-    if (resolved) return resolved;
-    throw new Error(
-      `[site.ts] 文章 frontmatter 指定的封面 "${explicitCover}" 在 public/images/covers/ 下找不到对应文件。`
-    );
-  }
-
+export function resolveCover(
+  explicitCover: ImageMetadata | undefined
+): ImageMetadata | string {
+  if (explicitCover) return explicitCover;
   return siteAssets.covers.default;
+}
+
+/** 把 resolveCover 的返回值归一为 `src` 字符串，便于原生 `<img>` 使用 */
+export function coverSrcOf(cover: ImageMetadata | string): string {
+  return typeof cover === 'string' ? cover : cover.src;
 }
 
 export const siteMeta = {

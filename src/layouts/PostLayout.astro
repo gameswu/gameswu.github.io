@@ -4,23 +4,31 @@ import TagList from '@/components/TagList.astro';
 import TableOfContents, { type Heading } from '@/components/TableOfContents.astro';
 import ReadingProgress from '@/components/ReadingProgress.astro';
 import CodeBlockEnhancer from '@/components/CodeBlockEnhancer.astro';
-import { resolveCover } from '@/config/site';
+import PostNav from '@/components/PostNav.astro';
+import { resolveCover, coverSrcOf } from '@/config/site';
+import type { ImageMetadata } from 'astro';
 
+interface NavItem {
+  slug: string;
+  title: string;
+}
 interface Props {
   frontmatter: {
     title: string;
     description?: string;
     date: string;
     tags?: string[];
-    cover?: string;
+    cover?: ImageMetadata;
   };
   headings?: Heading[];
+  prev?: NavItem | null;
+  next?: NavItem | null;
 }
 
-const { frontmatter, headings = [] } = Astro.props;
+const { frontmatter, headings = [], prev = null, next = null } = Astro.props;
 const { title, description, date, tags = [], cover } = frontmatter;
 
-const coverSrc = resolveCover(cover);
+const coverSrc = coverSrcOf(resolveCover(cover));
 
 const formattedDate = new Date(date).toLocaleDateString('zh-CN', {
   year: 'numeric',
@@ -87,6 +95,8 @@ const formattedDate = new Date(date).toLocaleDateString('zh-CN', {
       <div class="prose-satori">
         <slot />
       </div>
+
+      <PostNav prev={prev} next={next} />
 
       <footer
         class="mt-16 pt-8 flex items-center justify-between flex-wrap gap-4"
@@ -198,9 +208,54 @@ const formattedDate = new Date(date).toLocaleDateString('zh-CN', {
         if (!src) continue;
         try {
           const { svg } = await mermaid.render(`mermaid-${Date.now()}-${i}`, src);
+          // 外壳：包含 SVG 视图 + 源码视图 + 右上角分段切换器
           const wrapper = document.createElement('div');
           wrapper.className = 'mermaid-rendered';
-          wrapper.innerHTML = svg;
+
+          // 分段切换器（图 / 源码）
+          const bar = document.createElement('div');
+          bar.className = 'mermaid-toolbar';
+          bar.innerHTML = `
+            <div class="mermaid-toggle" role="tablist" aria-label="图表视图切换">
+              <button type="button" class="mermaid-toggle-btn is-active" data-view="diagram" role="tab" aria-selected="true">图</button>
+              <button type="button" class="mermaid-toggle-btn" data-view="source" role="tab" aria-selected="false">源码</button>
+            </div>
+          `;
+          wrapper.appendChild(bar);
+
+          // 图视图
+          const diagram = document.createElement('div');
+          diagram.className = 'mermaid-view mermaid-view--diagram';
+          diagram.innerHTML = svg;
+          wrapper.appendChild(diagram);
+
+          // 源码视图（原始 mermaid 文本，保留 pre + code 但不经 Shiki 处理）
+          const sourceView = document.createElement('div');
+          sourceView.className = 'mermaid-view mermaid-view--source';
+          sourceView.hidden = true;
+          const sourcePre = document.createElement('pre');
+          sourcePre.className = 'mermaid-source';
+          const sourceCode = document.createElement('code');
+          sourceCode.textContent = src;
+          sourcePre.appendChild(sourceCode);
+          sourceView.appendChild(sourcePre);
+          wrapper.appendChild(sourceView);
+
+          // 切换逻辑
+          const btns = bar.querySelectorAll<HTMLButtonElement>('.mermaid-toggle-btn');
+          btns.forEach((b) => {
+            b.addEventListener('click', () => {
+              const view = b.dataset.view;
+              btns.forEach((x) => {
+                const active = x.dataset.view === view;
+                x.classList.toggle('is-active', active);
+                x.setAttribute('aria-selected', active ? 'true' : 'false');
+              });
+              diagram.hidden = view !== 'diagram';
+              sourceView.hidden = view !== 'source';
+            });
+          });
+
           pre.replaceWith(wrapper);
         } catch (err) {
           console.error('[mermaid] render failed:', err);

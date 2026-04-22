@@ -1,5 +1,6 @@
 ---
-import { resolveCover } from '@/config/site';
+import { resolveCover, coverSrcOf } from '@/config/site';
+import type { ImageMetadata } from 'astro';
 
 interface Props {
   title: string;
@@ -7,12 +8,12 @@ interface Props {
   date: string;
   tags?: string[];
   slug: string;
-  cover?: string;
+  cover?: ImageMetadata;
 }
 
 const { title, description, date, tags = [], slug, cover } = Astro.props;
 
-const coverSrc = resolveCover(cover);
+const coverSrc = coverSrcOf(resolveCover(cover));
 
 const formattedDate = new Date(date).toLocaleDateString('zh-CN', {
   year: 'numeric',

@@ -4,16 +4,38 @@ import { getCollection, render } from 'astro:content';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts');
+  // 建立 slug → 文章数据 的索引，供 prev/next 解析
+  const bySlug = new Map(posts.map((p) => [p.id, p]));
+
+  /**
+   * 将 frontmatter 里的 prev/next slug 解析为导航项：
+   * - 字段缺失 / 空字符串 → null（不渲染）
+   * - 指向不存在的 slug → null（静默降级，避免 404 链接）
+   */
+  const resolveNav = (slug: string | undefined) => {
+    if (!slug) return null;
+    const target = bySlug.get(slug);
+    if (!target) return null;
+    return {
+      slug: target.id,
+      title: target.data.title,
+    };
+  };
+
   return posts.map((post) => ({
     params: { slug: post.id },
-    props: { post },
+    props: {
+      post,
+      prev: resolveNav(post.data.prev),
+      next: resolveNav(post.data.next),
+    },
   }));
 }
 
-const { post } = Astro.props;
+const { post, prev, next } = Astro.props;
 const { Content, headings } = await render(post);
 ---
 
-<PostLayout frontmatter={post.data} headings={headings}>
+<PostLayout frontmatter={post.data} headings={headings} prev={prev} next={next}>
   <Content />
 </PostLayout>
