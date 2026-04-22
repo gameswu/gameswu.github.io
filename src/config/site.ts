@@ -64,6 +64,16 @@ export function resolveAvatar(baseName: string): string {
   return img('avatars', baseName);
 }
 
+/**
+ * 解析友链 logo 基础名。
+ * - 传入基础名 → 在 public/images/links/ 下按 SUPPORTED_EXTS 查找，缺图抛错
+ * - 未传入     → 回退到兜底封面（covers/default）以保证页面始终可渲染
+ */
+export function resolveLinkLogo(baseName: string | undefined): string {
+  if (!baseName) return siteAssets.covers.default;
+  return img('links', baseName);
+}
+
 export const siteAssets = {
   covers: {
     /** 兜底封面必须存在（缺图报错是预期行为） */
@@ -100,6 +110,26 @@ export function coverSrcOf(cover: ImageMetadata | string): string {
   return typeof cover === 'string' ? cover : cover.src;
 }
 
+/**
+ * 统一的文章排序：`date` 降序为主，同日时 `order` 降序为次（未填 order 视为 0）。
+ *
+ * 需要这个 tiebreaker 是因为单纯按 date 排序时，同一天发布的多篇文章顺序
+ * 不稳定（取决于 loader 读取顺序）。作者可在 frontmatter 填 `order: <int>`
+ * 来显式指定：数值大 = 更新 = 排前面。
+ *
+ * 不破坏原数组（返回新数组），与之前的 `.sort()` 行为差异仅在此处 —— 调用方
+ * 通常也不依赖原地排序。
+ */
+export function sortPostsByDate<T extends { data: { date: string; order?: number } }>(
+  posts: readonly T[]
+): T[] {
+  return [...posts].sort((a, b) => {
+    const diff = new Date(b.data.date).getTime() - new Date(a.data.date).getTime();
+    if (diff !== 0) return diff;
+    return (b.data.order ?? 0) - (a.data.order ?? 0);
+  });
+}
+
 export const siteMeta = {
   title: '觉的博客',
   description: '古明地觉的个人博客 — 窥探内心深处的文字世界',
@@ -130,6 +160,7 @@ export const siteProfile = {
   nav: [
     { label: '首页', href: '/' },
     { label: '文章', href: '/posts' },
+    { label: '友链', href: '/links' },
     { label: '关于', href: '/about' },
   ] as const,
 
@@ -139,6 +170,7 @@ export const siteProfile = {
     decoration: '地灵殿',
     links: [
       { label: '文章', href: '/posts' },
+      { label: '友链', href: '/links' },
       { label: '关于', href: '/about' },
     ] as const,
   },

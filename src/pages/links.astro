@@ -1,0 +1,118 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import ThirdEye from '@/components/ThirdEye.astro';
+import { resolveLinkLogo, siteAssets } from '@/config/site';
+import { getEntry, render } from 'astro:content';
+
+const entry = await getEntry('links', 'index');
+if (!entry) {
+  throw new Error('[links] 找不到 src/content/links/index.md');
+}
+const { Content } = await render(entry);
+const { title, description, links } = entry.data;
+
+// 预解析 logo URL —— 缺图会在此处抛错（与 about 页封面一致的「缺图即报错」策略）
+const cards = links.map((l) => ({
+  ...l,
+  logoSrc: resolveLinkLogo(l.logo),
+}));
+
+// 横幅使用兜底封面（与「无 logo 时的友链兜底图」保持同一张）
+const bannerImg = siteAssets.covers.default;
+---
+
+<BaseLayout title={title} description={description}>
+  <!-- 横幅 Hero（与 /posts 样式一致） -->
+  <section class="relative w-full overflow-hidden" style="height: clamp(240px, 32vh, 360px);">
+    <img
+      src={bannerImg}
+      alt=""
+      class="absolute inset-0 w-full h-full object-cover"
+      loading="eager"
+    />
+    <div
+      class="absolute inset-0"
+      style="background: linear-gradient(to bottom, color-mix(in srgb, var(--canvas) 25%, transparent) 0%, color-mix(in srgb, var(--canvas) 55%, transparent) 55%, var(--canvas) 100%);"
+    ></div>
+
+    <div class="absolute inset-x-0 bottom-0">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 pb-8 sm:pb-10">
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold mb-2" style="color: var(--text-primary);">
+          {title}
+        </h1>
+        {description && (
+          <p class="text-sm sm:text-base" style="color: var(--text-secondary);">
+            {description}
+          </p>
+        )}
+      </div>
+    </div>
+  </section>
+
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 py-10">
+    <!-- 分隔线 -->
+    <div class="flex items-center justify-center gap-3 mb-10">
+      <div
+        class="w-16 h-px"
+        style="background: linear-gradient(to right, transparent, var(--border-strong));"
+      ></div>
+      <ThirdEye size="xs" animate={false} />
+      <div
+        class="w-16 h-px"
+        style="background: linear-gradient(to left, transparent, var(--border-strong));"
+      ></div>
+    </div>
+
+    <!-- 说明文字（来自 Markdown body） -->
+    {entry.body && entry.body.trim().length > 0 && (
+      <article class="prose-satori card p-6 sm:p-8 mb-8">
+        <Content />
+      </article>
+    )}
+
+    <!-- 友链卡片网格 -->
+    {cards.length > 0 ? (
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {cards.map((link) => (
+          <a
+            href={link.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="card p-5 flex gap-4 items-start transition-all duration-300 hover:-translate-y-0.5"
+            style="border: 1px solid var(--border-subtle);"
+          >
+            <div
+              class="flex-shrink-0 w-14 h-14 rounded-xl overflow-hidden"
+              style="border: 1px solid var(--border-subtle); background: var(--surface);"
+            >
+              <img
+                src={link.logoSrc}
+                alt={`${link.title} logo`}
+                class="w-full h-full object-cover"
+                loading="lazy"
+              />
+            </div>
+            <div class="min-w-0 flex-1">
+              <h3
+                class="text-base font-serif font-semibold mb-1 truncate"
+                style="color: var(--text-primary);"
+              >
+                {link.title}
+              </h3>
+              <p
+                class="text-sm leading-relaxed"
+                style="color: var(--text-secondary); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;"
+              >
+                {link.description}
+              </p>
+            </div>
+          </a>
+        ))}
+      </div>
+    ) : (
+      <div class="card p-8 text-center" style="color: var(--text-muted);">
+        暂无友链。
+      </div>
+    )}
+  </div>
+</BaseLayout>

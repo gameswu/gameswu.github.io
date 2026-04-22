@@ -41,7 +41,3 @@ quote: 如果文字也有颜色的话，我希望是紫色的。
 - 邮箱：wuhx24@mails.tsinghua.edu.cn
 - GitHub: [github.com/gameswu](https://github.com/gameswu)
 - B站: [space.bilibili.com/1970199213](https://space.bilibili.com/1970199213)
-
-## 友链
-
-- [CPHOS](https://cphos.cn): CPHOS 是由十余名国家集训队成员于 2020 年年末组建的公益性物理竞赛组织，始终致力于为物理竞赛选手构筑透明开放的交流平台，为退役选手的全方位发展提供支持与帮助，为物理竞赛的健康蓬勃发展贡献力量。

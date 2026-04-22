@@ -29,6 +29,13 @@ const posts = defineCollection({
      */
     cover: image().optional(),
     draft: z.boolean().default(false),
+    /**
+     * 同日发文的显式排序键。数值越大越靠前（视为越新）。
+     * - 省略 → 视为 0
+     * - 仅在一天内发布多篇文章、需要明确先后关系时填写
+     * 跨日期排序仍以 `date` 为主，`order` 只作为同日 tiebreaker。
+     */
+    order: z.number().int().optional(),
     /** 上一篇文章 slug（对应 src/content/posts/<slug>.md 文件名）。
      *  留空或指向不存在的文章时，文章页不渲染"上一篇"跳转。 */
     prev: z.string().optional(),
@@ -53,4 +60,31 @@ const about = defineCollection({
   }),
 });
 
-export const collections = { posts, about };
+/**
+ * 友链集合（单文件 index.md）
+ * - frontmatter.links[] 为友链卡片列表（结构化字段）
+ * - body 为页面顶部说明文字（可选，走 prose-satori 样式）
+ *
+ * logo 字段为基础名，对应 public/images/links/<basename>.<ext>；
+ * 未指定时由 resolveLinkLogo() 兜底为 covers/default（保证构建不因缺图中断）。
+ */
+const links = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/links' }),
+  schema: z.object({
+    title: z.string().default('友链'),
+    description: z.string().optional(),
+    links: z
+      .array(
+        z.object({
+          title: z.string(),
+          description: z.string(),
+          url: z.string().url(),
+          /** logo 基础名（对应 public/images/links/<basename>），留空使用兜底 */
+          logo: z.string().optional(),
+        })
+      )
+      .default([]),
+  }),
+});
+
+export const collections = { posts, about, links };

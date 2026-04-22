@@ -2,9 +2,11 @@
 title: 古明地觉谈 Agent 应用 - 基础篇 2
 description: 介绍 Agent 应用设计的一些原则和方法
 date: '2026-04-23'
+order: 1
 tags: [Agent, AI, 技术]
 cover: ./cover.png
 prev: agent-dev-basis-1
+next: agent-dev-basis-3
 ---
 
 在上一篇文章中，笔者介绍了 Agent 应用中涉及到的基本概念。在这一篇文章中，笔者将介绍 Agent 应用设计的一些原则和方法。
