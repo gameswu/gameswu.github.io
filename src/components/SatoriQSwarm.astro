@@ -1,0 +1,303 @@
+---
+/**
+ * SatoriQSwarm —— 隐藏彩蛋
+ *
+ * 触发：在页面内 1.2s 内任意位置点击 5 下，刷出一只 Q 版古明地觉。
+ * 行为：
+ *   - 受重力影响会下落到窗口底部
+ *   - 贴地时每隔一小段随机时间向左/右/上弹跳
+ *   - 可拖拽；拖拽中暂停重力，松手后继承拖拽末速度
+ *   - 双击某只即可关闭它
+ *   - 同时最多 5 只，超出 FIFO 淘汰最早的
+ *
+ * 资源：public/images/characters/satori-q.(webp|avif|jpg|jpeg|png|gif)
+ *   - **缺图不报错**：此处没放图时整个组件在 SSR 阶段就不渲染，build 仍能通过
+ *   - 放入后自动启用
+ *
+ * 实现：自写轻量物理（rAF + 简化欧拉积分），无第三方依赖
+ */
+import { resolveCharacterQ } from '@/config/site';
+
+const satoriQUrl = resolveCharacterQ();
+---
+
+{
+  satoriQUrl && (
+    <div
+      class="satori-q-stage"
+      aria-hidden="true"
+      data-satori-q-url={satoriQUrl}
+    />
+  )
+}
+
+<script>
+  (() => {
+    if (typeof window === 'undefined') return;
+
+    const stage = document.querySelector<HTMLDivElement>('.satori-q-stage');
+    if (!stage) return;
+    const IMG_URL = stage.dataset.satoriQUrl;
+    if (!IMG_URL) return;
+
+    // ---- 触发：1.2s 内 5 连点 ----
+    const CLICK_WINDOW_MS = 1200;
+    const CLICK_TARGET = 5;
+    const clickTimes: number[] = [];
+
+    // ---- 物理常量 ----
+    const GRAVITY = 1800;            // px / s^2
+    const GROUND_DAMP = 0.55;        // 触地反弹速度保留比例
+    const AIR_DRAG = 0.9995;         // 每秒水平微阻尼（per dt 动态计算）
+    const WALL_DAMP = 0.65;          // 撞墙反弹
+    const REST_EPS = 60;             // |vy| 小于此值且贴地时视为静止
+    const HOP_INTERVAL_MIN = 600;    // 贴地随机跳动间隔
+    const HOP_INTERVAL_MAX = 1800;
+    const HOP_VY = -780;             // 跳起竖直初速度（负为向上）
+    const HOP_VX_RANGE = 420;        // 跳起水平初速度范围 ±
+    const MAX_INSTANCES = 5;
+    const SPRITE_SIZE = 96;          // px；样式里同步
+
+    // ---- 拖拽速度估计：维护最近两帧位置 ----
+    interface DragTrack {
+      lastX: number;
+      lastY: number;
+      lastT: number;
+      vx: number;
+      vy: number;
+    }
+
+    interface SatoriQ {
+      el: HTMLDivElement;
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      grounded: boolean;
+      nextHopAt: number;
+      dragging: DragTrack | null;
+      pointerId: number | null;
+    }
+
+    const sprites: SatoriQ[] = [];
+    let rafId: number | null = null;
+    let lastFrameT = 0;
+
+    // ---- 创建一个精灵 ----
+    function spawnAt(clientX: number, clientY: number) {
+      if (sprites.length >= MAX_INSTANCES) {
+        const oldest = sprites.shift();
+        oldest?.el.remove();
+      }
+
+      const el = document.createElement('div');
+      el.className = 'satori-q-sprite';
+      const img = document.createElement('img');
+      img.src = IMG_URL!;
+      img.alt = '';
+      img.draggable = false;
+      el.appendChild(img);
+      document.body.appendChild(el);
+
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      // 以点击位置为中心落下；裁到视口内
+      const x = Math.max(0, Math.min(vw - SPRITE_SIZE, clientX - SPRITE_SIZE / 2));
+      const y = Math.max(0, Math.min(vh - SPRITE_SIZE, clientY - SPRITE_SIZE / 2));
+
+      const sprite: SatoriQ = {
+        el,
+        x,
+        y,
+        vx: (Math.random() - 0.5) * 300,
+        vy: 0,
+        grounded: false,
+        nextHopAt: 0,
+        dragging: null,
+        pointerId: null,
+      };
+      sprites.push(sprite);
+
+      bindSpriteEvents(sprite);
+      writeTransform(sprite);
+      ensureLoop();
+    }
+
+    function bindSpriteEvents(s: SatoriQ) {
+      // 双击关闭
+      s.el.addEventListener('dblclick', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        removeSprite(s);
+      });
+
+      // 拖拽
+      s.el.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        s.pointerId = e.pointerId;
+        s.el.setPointerCapture(e.pointerId);
+        s.el.classList.add('is-dragging');
+        const now = performance.now();
+        s.dragging = {
+          lastX: e.clientX,
+          lastY: e.clientY,
+          lastT: now,
+          vx: 0,
+          vy: 0,
+        };
+        // 冻结当前速度
+        s.vx = 0;
+        s.vy = 0;
+      });
+
+      s.el.addEventListener('pointermove', (e) => {
+        if (!s.dragging || e.pointerId !== s.pointerId) return;
+        const now = performance.now();
+        const dt = Math.max(1, now - s.dragging.lastT) / 1000; // s
+        const dx = e.clientX - s.dragging.lastX;
+        const dy = e.clientY - s.dragging.lastY;
+        // 以 sprite 左上角对齐指针（保持 pointerdown 时的相对位置更自然，但这里简化：中心吸附指针）
+        s.x += dx;
+        s.y += dy;
+        // 速度估计（低通，防抖）
+        const instVx = dx / dt;
+        const instVy = dy / dt;
+        s.dragging.vx = s.dragging.vx * 0.4 + instVx * 0.6;
+        s.dragging.vy = s.dragging.vy * 0.4 + instVy * 0.6;
+        s.dragging.lastX = e.clientX;
+        s.dragging.lastY = e.clientY;
+        s.dragging.lastT = now;
+        writeTransform(s);
+      });
+
+      const endDrag = (e: PointerEvent) => {
+        if (!s.dragging || e.pointerId !== s.pointerId) return;
+        s.vx = s.dragging.vx;
+        s.vy = s.dragging.vy;
+        s.dragging = null;
+        s.pointerId = null;
+        s.el.classList.remove('is-dragging');
+        s.grounded = false;
+      };
+      s.el.addEventListener('pointerup', endDrag);
+      s.el.addEventListener('pointercancel', endDrag);
+    }
+
+    function removeSprite(s: SatoriQ) {
+      const idx = sprites.indexOf(s);
+      if (idx >= 0) sprites.splice(idx, 1);
+      s.el.remove();
+    }
+
+    function writeTransform(s: SatoriQ) {
+      s.el.style.transform = `translate3d(${s.x}px, ${s.y}px, 0)`;
+    }
+
+    // ---- 主循环 ----
+    function step(t: number) {
+      if (lastFrameT === 0) lastFrameT = t;
+      const dt = Math.min(0.05, (t - lastFrameT) / 1000); // clamp 到 50ms 防止标签页切换回来后跳变
+      lastFrameT = t;
+
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const floor = vh - SPRITE_SIZE;
+      const rightWall = vw - SPRITE_SIZE;
+
+      for (const s of sprites) {
+        if (s.dragging) continue; // 拖拽时不做物理积分
+
+        // 重力
+        s.vy += GRAVITY * dt;
+        // 水平阻尼（近似 per-frame 衰减）
+        s.vx *= Math.pow(AIR_DRAG, dt * 60);
+
+        s.x += s.vx * dt;
+        s.y += s.vy * dt;
+
+        // 地面
+        if (s.y >= floor) {
+          s.y = floor;
+          if (Math.abs(s.vy) > REST_EPS) {
+            s.vy = -s.vy * GROUND_DAMP;
+          } else {
+            s.vy = 0;
+            if (!s.grounded) {
+              s.grounded = true;
+              s.nextHopAt = t + HOP_INTERVAL_MIN + Math.random() * (HOP_INTERVAL_MAX - HOP_INTERVAL_MIN);
+            }
+          }
+        } else {
+          s.grounded = false;
+        }
+
+        // 左右墙
+        if (s.x < 0) {
+          s.x = 0;
+          s.vx = Math.abs(s.vx) * WALL_DAMP;
+        } else if (s.x > rightWall) {
+          s.x = rightWall;
+          s.vx = -Math.abs(s.vx) * WALL_DAMP;
+        }
+
+        // 贴地跳动
+        if (s.grounded && t >= s.nextHopAt) {
+          s.vy = HOP_VY + (Math.random() - 0.5) * 120;
+          s.vx = (Math.random() - 0.5) * 2 * HOP_VX_RANGE;
+          s.grounded = false;
+        }
+
+        writeTransform(s);
+      }
+
+      if (sprites.length > 0) {
+        rafId = requestAnimationFrame(step);
+      } else {
+        rafId = null;
+        lastFrameT = 0;
+      }
+    }
+
+    function ensureLoop() {
+      if (rafId == null) {
+        lastFrameT = 0;
+        rafId = requestAnimationFrame(step);
+      }
+    }
+
+    // ---- 窗口大小变化：把飞出界外的拉回来 ----
+    window.addEventListener('resize', () => {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      for (const s of sprites) {
+        s.x = Math.max(0, Math.min(vw - SPRITE_SIZE, s.x));
+        s.y = Math.max(0, Math.min(vh - SPRITE_SIZE, s.y));
+        writeTransform(s);
+      }
+    });
+
+    // ---- 全局 5 连点监听 ----
+    window.addEventListener(
+      'pointerdown',
+      (e) => {
+        // 忽略从已有 sprite 上发起的事件（避免拖拽精灵也被计入连点）
+        const target = e.target as Element | null;
+        if (target && target.closest && target.closest('.satori-q-sprite')) return;
+
+        const now = performance.now();
+        clickTimes.push(now);
+        // 保留最近 CLICK_TARGET 次
+        if (clickTimes.length > CLICK_TARGET) clickTimes.shift();
+        if (
+          clickTimes.length === CLICK_TARGET &&
+          now - clickTimes[0] <= CLICK_WINDOW_MS
+        ) {
+          spawnAt(e.clientX, e.clientY);
+          clickTimes.length = 0;
+        }
+      },
+      { capture: true, passive: true }
+    );
+  })();
+</script>

@@ -2,7 +2,7 @@
 title: 古明地觉谈 Agent 应用 - 基础篇 1
 description: 介绍 Agent 应用中的基本概念
 date: '2026-04-22'
-tags: [Agent, AI, 技术]
+tags: [Agent, LLM, 技术]
 cover: ./cover.png
 next: agent-dev-basis-2
 ---

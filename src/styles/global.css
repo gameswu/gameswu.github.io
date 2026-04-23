@@ -675,6 +675,42 @@
     border: 1px solid var(--border-subtle);
     color: var(--text-secondary);
   }
+
+  /* ======================================================================
+     SatoriQSwarm 彩蛋 —— Q 版古明地觉弹跳精灵
+     由 SatoriQSwarm.astro 在 body 末尾注入 .satori-q-stage（占位，不参与布局）
+     实际精灵直接挂在 body 下，绝对定位
+     ====================================================================== */
+  .satori-q-stage {
+    display: none;
+  }
+  .satori-q-sprite {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 96px;
+    height: 96px;
+    z-index: 9998; /* 在 cursor-trail 下方一层，避免遮挡粒子 */
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+    will-change: transform;
+    filter: drop-shadow(0 6px 12px color-mix(in srgb, var(--brand) 40%, transparent));
+    transition: filter 180ms var(--ease-standard);
+  }
+  .satori-q-sprite.is-dragging {
+    cursor: grabbing;
+    filter: drop-shadow(0 10px 20px color-mix(in srgb, var(--accent) 55%, transparent));
+  }
+  .satori-q-sprite img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    pointer-events: none; /* 让事件落到外层容器 */
+    -webkit-user-drag: none;
+  }
 }
 
 /* ========================================================================

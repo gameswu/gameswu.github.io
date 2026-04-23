@@ -3,9 +3,10 @@ title: 古明地觉谈 Agent 应用 - 基础篇 3
 description: 以 OpenAI python SDK 为基础，介绍 Agent 的基本开发
 date: '2026-04-23'
 order: 2
-tags: [Agent, AI, 技术]
+tags: [Agent, Python, 技术, 开发, OpenAI SDK]
 cover: ./cover.png
 prev: agent-dev-basis-2
+next: agent-dev-basis-4
 ---
 
 在上一篇文章中，笔者介绍了 Agent 应用设计的一些原则和方法。在这一篇文章中，笔者将以 OpenAI python SDK 为基础，介绍 Agent 的基本开发。

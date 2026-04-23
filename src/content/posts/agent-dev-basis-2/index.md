@@ -3,7 +3,7 @@ title: 古明地觉谈 Agent 应用 - 基础篇 2
 description: 介绍 Agent 应用设计的一些原则和方法
 date: '2026-04-23'
 order: 1
-tags: [Agent, AI, 技术]
+tags: [Agent, Workflow, 技术, 状态机, 开发, Parser]
 cover: ./cover.png
 prev: agent-dev-basis-1
 next: agent-dev-basis-3

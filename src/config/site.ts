@@ -65,6 +65,17 @@ export function resolveAvatar(baseName: string): string {
 }
 
 /**
+ * 解析 Q 版古明地觉图像（SatoriQSwarm 彩蛋使用）。
+ *
+ * 与其他资源不同，这里**缺图不报错**：组件在 URL 为 null 时直接禁用彩蛋，
+ * 允许在用户尚未准备图片的情况下照常 build。放入任意支持格式的
+ * `public/images/characters/satori-q.*` 后即自动启用。
+ */
+export function resolveCharacterQ(): string | null {
+  return findImage('characters', 'satori-q');
+}
+
+/**
  * 解析友链 logo 基础名。
  * - 传入基础名 → 在 public/images/links/ 下按 SUPPORTED_EXTS 查找，缺图抛错
  * - 未传入     → 回退到兜底封面（covers/default）以保证页面始终可渲染
