@@ -6,7 +6,7 @@ order: 2
 tags: [Agent, 技术, SubAgent, Python]
 cover: ./cover.png
 prev: agent-dev-advanced-1
-# next: agent-dev-advanced-3
+next: agent-dev-advanced-3
 ---
 
 在[基础篇 3](/posts/agent-dev-basis-3)中，笔者曾介绍过 ReAct Agent 的设计范式并说明过大模型如何通过工具调用实现和外部环境的交互。但是直接将所有工具提供给一个 LLM 来调用在实践中可能会遇到一些问题，比如：
@@ -489,3 +489,13 @@ final_review = aggregate_results(
 )
 print(final_review)
 ```
+
+## 为什么不推荐 Skills
+
+在这里，笔者想解释一下个人对于 Skills 的看法。在[基础篇 1](/posts/agent-dev-basis-1)中，我们提到过 Skills 是为了解决过多工具信息占用过多上下文窗口的问题，通过将工具调用的细节隐藏在一个独立的 Skill 中来简化 Agent 的视图。
+
+但首先笔者想强调，Skills 的设计并不利于应用级别的规范。Skills 通过文档文本说明来替代原本工具明确的结构化定义，在一定程度上混淆了 Prompt 和工具的边界，并且由于 Skills 以文档为主，在调试和维护上也会更加困难。
+
+那么为什么 Anthropic 还要提出 Skills 呢？笔者认为这是由于在当时已经铺开的应用场景中，经常出现用户自行搭载重量工具的情形，以及大量的 Agent 应用开发者不重视工具的设计和管理。事实上直到今天我们仍然不能期望所有的用户以及开发者都能意识到模型使用工具的能力是有边界的，因此作为一种不影响原有架构的补充，Skills 也算是一种权宜之计。
+
+但从长远来看，笔者认为作为 Agent 应用的开发者，我们应该更加重视工具的设计和管理，利用好我们已经建立的 `Tool` / `ToolManager` 体系来规范工具的定义和使用来清晰明确的解决这些问题。这也让使用 Skills 的前提不复存在了。
