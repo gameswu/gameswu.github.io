@@ -23,9 +23,10 @@ interface Props {
   headings?: Heading[];
   prev?: NavItem | null;
   next?: NavItem | null;
+  wordCount?: number;
 }
 
-const { frontmatter, headings = [], prev = null, next = null } = Astro.props;
+const { frontmatter, headings = [], prev = null, next = null, wordCount } = Astro.props;
 const { title, description, date, tags = [], cover } = frontmatter;
 
 const coverSrc = coverSrcOf(resolveCover(cover));
@@ -64,6 +65,12 @@ const formattedDate = new Date(date).toLocaleDateString('zh-CN', {
               d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
           <time datetime={date} data-pagefind-meta="date">{formattedDate}</time>
+          {wordCount != null && wordCount > 0 && (
+            <>
+              <span style="color: var(--text-muted);">·</span>
+              <span>约 {wordCount} 字</span>
+            </>
+          )}
         </div>
 
         <h1

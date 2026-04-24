@@ -9,9 +9,10 @@ interface Props {
   tags?: string[];
   slug: string;
   cover?: ImageMetadata;
+  wordCount?: number;
 }
 
-const { title, description, date, tags = [], slug, cover } = Astro.props;
+const { title, description, date, tags = [], slug, cover, wordCount } = Astro.props;
 
 const coverSrc = coverSrcOf(resolveCover(cover));
 
@@ -42,6 +43,9 @@ const formattedDate = new Date(date).toLocaleDateString('zh-CN', {
     <div class="p-5 flex flex-col flex-1">
       <div class="text-xs mb-2" style="color: var(--text-muted);">
         <time datetime={date}>{formattedDate}</time>
+        {wordCount != null && wordCount > 0 && (
+          <span> · 约 {wordCount} 字</span>
+        )}
       </div>
 
       <h3

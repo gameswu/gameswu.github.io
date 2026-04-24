@@ -3,7 +3,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import PostCard from '@/components/PostCard.astro';
 import TagList from '@/components/TagList.astro';
 import { getCollection } from 'astro:content';
-import { siteAssets, sortPostsByDate } from '@/config/site';
+import { siteAssets, sortPostsByDate, countWords } from '@/config/site';
 
 const allPosts = await getCollection('posts', ({ data }) => !data.draft);
 const sortedPosts = sortPostsByDate(allPosts);
@@ -59,6 +59,7 @@ const sceneImg = siteAssets.scenes.chireiden;
           tags={post.data.tags}
           slug={post.id}
           cover={post.data.cover}
+          wordCount={countWords(post.body)}
         />
       ))}
     </div>

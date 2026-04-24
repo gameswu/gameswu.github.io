@@ -1,6 +1,7 @@
 ---
 import PostLayout from '@/layouts/PostLayout.astro';
 import { getCollection, render } from 'astro:content';
+import { countWords } from '@/config/site';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts');
@@ -34,8 +35,9 @@ export async function getStaticPaths() {
 
 const { post, prev, next } = Astro.props;
 const { Content, headings } = await render(post);
+const wordCount = countWords(post.body);
 ---
 
-<PostLayout frontmatter={post.data} headings={headings} prev={prev} next={next}>
+<PostLayout frontmatter={post.data} headings={headings} prev={prev} next={next} wordCount={wordCount}>
   <Content />
 </PostLayout>

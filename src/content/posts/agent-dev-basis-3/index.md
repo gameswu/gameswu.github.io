@@ -9,6 +9,8 @@ prev: agent-dev-basis-2
 next: agent-dev-basis-4
 ---
 
+> 建议读者了解 Python 基本语法，并熟悉面向对象编程的基本思想后再阅读本文内容。
+
 在上一篇文章中，笔者介绍了 Agent 应用设计的一些原则和方法。在这一篇文章中，笔者将以 OpenAI python SDK 为基础，介绍 Agent 的基本开发。
 
 ## ReAct Agent

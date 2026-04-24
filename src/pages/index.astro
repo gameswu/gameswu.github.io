@@ -3,7 +3,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import Hero from '@/components/Hero.astro';
 import PostCard from '@/components/PostCard.astro';
 import { getCollection } from 'astro:content';
-import { sortPostsByDate } from '@/config/site';
+import { sortPostsByDate, countWords } from '@/config/site';
 
 const allPosts = await getCollection('posts', ({ data }) => !data.draft);
 const recentPosts = sortPostsByDate(allPosts).slice(0, 4);
@@ -39,6 +39,7 @@ const recentPosts = sortPostsByDate(allPosts).slice(0, 4);
           tags={post.data.tags}
           slug={post.id}
           cover={post.data.cover}
+          wordCount={countWords(post.body)}
         />
       ))}
     </div>

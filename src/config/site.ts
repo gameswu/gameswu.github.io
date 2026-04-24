@@ -141,6 +141,50 @@ export function sortPostsByDate<T extends { data: { date: string; order?: number
   });
 }
 
+/**
+ * 统计 Markdown 正文字数（排除 frontmatter）。
+ *
+ * 规则：
+ * - 每个 CJK 字符计 1 字
+ * - 连续的拉丁 / 数字 token 计 1 词
+ * - 代码块、HTML 标签、Markdown 语法标记等被粗略剥离
+ *
+ * 用于文章卡片和详情页显示"约 x 字"。
+ */
+export function countWords(raw: string | undefined): number {
+  if (!raw) return 0;
+
+  // 粗略清理 Markdown 语法
+  let text = raw
+    .replace(/```[\s\S]*?```/g, '')      // 围栏代码块
+    .replace(/`[^`]*`/g, '')              // 行内代码
+    .replace(/!?\[.*?\]\(.*?\)/g, '')     // 链接 / 图片
+    .replace(/<[^>]+>/g, '')              // HTML 标签
+    .replace(/^#+\s/gm, '')              // 标题标记
+    .replace(/^\s*[-*>]\s/gm, '')        // 列表 / 引用标记
+    .replace(/\[.*?\]/g, '')              // 脚注引用
+    .replace(/[^\S\n]+/g, ' ')           // 合并空白
+    .trim();
+
+  // CJK 字符范围（统一汉字 + 扩展 A/B + 日文假名）
+  const CJK = /[\u4e00-\u9fff\u3400-\u4dbf\u{20000}-\u{2a6df}\u3040-\u309f\u30a0-\u30ff]/u;
+  let count = 0;
+  let i = 0;
+  while (i < text.length) {
+    if (CJK.test(text[i])) {
+      count++;
+      i++;
+    } else if (/\s/.test(text[i])) {
+      i++;
+    } else {
+      // 一个连续的拉丁 / 数字 / 符号 token 计 1 词
+      while (i < text.length && !CJK.test(text[i]) && !/\s/.test(text[i])) i++;
+      count++;
+    }
+  }
+  return count;
+}
+
 export const siteMeta = {
   title: '觉的博客',
   description: '古明地觉的个人博客 — 窥探内心深处的文字世界',

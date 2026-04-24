@@ -3,9 +3,10 @@ title: 古明地觉谈 Agent 应用 - 基础篇 4
 description: 介绍 Prompt 的管理和书写方法
 date: '2026-04-23'
 order: 3
-tags: [Agent, AI, 技术, Prompt]
+tags: [Agent, 技术, Prompt, Python]
 cover: ./cover.png
 prev: agent-dev-basis-3
+next: agent-dev-advanced-1
 ---
 
 在前面的文章中，我们已经介绍了 Agent 的基本开发方法。接下来，我们将深入探讨 Prompt 的管理和书写方法，这对于构建高效的 Agent 至关重要。

@@ -2,7 +2,7 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import PostCard from '@/components/PostCard.astro';
 import { getCollection, type CollectionEntry } from 'astro:content';
-import { sortPostsByDate } from '@/config/site';
+import { sortPostsByDate, countWords, siteAssets } from '@/config/site';
 
 export async function getStaticPaths() {
   const allPosts = await getCollection('posts', ({ data }) => !data.draft);
@@ -23,30 +23,47 @@ interface Props {
 }
 
 const { tag, posts } = Astro.props;
+const sceneImg = siteAssets.scenes.chireiden;
 ---
 
 <BaseLayout title={`#${tag}`} description={`标签「${tag}」下的所有文章`}>
-  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-12">
-    <header class="mb-10">
-      <a
-        href="/posts"
-        class="inline-flex items-center gap-1 text-sm transition-colors mb-4 group"
-        style="color: var(--accent);"
-      >
-        <svg class="w-3.5 h-3.5 transform group-hover:-translate-x-0.5 transition-transform duration-200"
-          fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-        </svg>
-        全部文章
-      </a>
-      <h1 class="text-3xl sm:text-4xl font-serif font-bold mb-3" style="color: var(--text-primary);">
-        <span style="color: var(--accent);">#</span>{tag}
-      </h1>
-      <p style="color: var(--text-muted);">
-        共 {posts.length} 篇文章
-      </p>
-    </header>
+  <!-- 横幅 Hero（与 /posts 一致） -->
+  <section class="relative w-full overflow-hidden" style="height: clamp(280px, 38vh, 420px);">
+    <img
+      src={sceneImg}
+      alt="地灵殿"
+      class="absolute inset-0 w-full h-full object-cover"
+      loading="eager"
+    />
+    <div
+      class="absolute inset-0"
+      style="background: linear-gradient(to bottom, color-mix(in srgb, var(--canvas) 25%, transparent) 0%, color-mix(in srgb, var(--canvas) 55%, transparent) 55%, var(--canvas) 100%);"
+    ></div>
 
+    <div class="absolute inset-x-0 bottom-0">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 pb-8 sm:pb-10">
+        <a
+          href="/posts"
+          class="inline-flex items-center gap-1 text-sm transition-colors mb-4 group"
+          style="color: var(--accent);"
+        >
+          <svg class="w-3.5 h-3.5 transform group-hover:-translate-x-0.5 transition-transform duration-200"
+            fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          全部文章
+        </a>
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold mb-2" style="color: var(--text-primary);">
+          <span style="color: var(--accent);">#</span>{tag}
+        </h1>
+        <p class="text-sm sm:text-base" style="color: var(--text-secondary);">
+          共 {posts.length} 篇文章
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-10">
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
       {posts.map((post) => (
         <PostCard
@@ -56,6 +73,7 @@ const { tag, posts } = Astro.props;
           tags={post.data.tags}
           slug={post.id}
           cover={post.data.cover}
+          wordCount={countWords(post.body)}
         />
       ))}
     </div>
